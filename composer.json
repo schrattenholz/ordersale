@@ -1,0 +1,23 @@
+{
+    "name": "schrattenholz/ordersale",
+    "description": "ordersale",
+    "type": "silverstripe-vendormodule",
+    "keywords": ["silverstripe", "ordersale"],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Fabian Schrattenholz",
+            "email": "fabian@schrattenholz.de"
+        }
+    ],
+	"extra": {
+		"expose": [
+		  "template"
+		]
+	  },
+	  "autoload": {
+	  "psr-4": {
+		"Schrattenholz\\OrderSale\\": "src/"
+	  }
+	}
+}

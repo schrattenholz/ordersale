@@ -1,0 +1,90 @@
+@charset "utf-8";
+/* CSS Document */
+
+.karte{
+	font-size:13px;	
+	margin-bottom:20px;
+	
+}
+.karteZeile1{
+color: #7FA360;
+font-size: 13px;
+font-weight: bold;
+line-height: 24px;
+margin-bottom: 4px;
+text-transform: uppercase;
+}
+.karteZeile2{
+	line-height:14px;
+	margin-bottom: 4px;
+	letter-spacing:.2pt;
+}
+.karteZeile3{
+	color: #62483B;
+	line-height: 14px;
+	margin-bottom: 4px;
+	margin-top: 4px;
+	letter-spacing:.2pt;
+}
+.karteHeadline{
+	color: #22201D;
+	font-size: 15px;
+	font-weight: bold;
+	margin-bottom: 3px;
+	margin-left: -1px;
+	margin-top: 20px;	
+}
+.karteSubHeadline{
+	color:#FFF;	
+	margin-left:-1px;
+	
+}
+.karteSubHeadline p{
+color: #685224;
+font-size: 16px;
+margin: 14px 0 0;
+letter-spacing:0pt;
+}
+.karteSubSubHeadline{
+	color: #FFFFFF;
+	margin-bottom: 4px;
+	margin-left: -1px;
+	margin-top: 14px;
+	
+}
+.karteSubSubHeadline p{
+	color: #4d6729;
+	font-size: 14px;
+	margin: 0 0 4px;
+	letter-spacing:0pt;
+}
+.karteSubSubZeile1{
+	line-height: 12px;
+	margin-bottom: 4px;
+	text-indent: 10px;
+	letter-spacing:.2pt;
+}
+
+.weinkarte{
+	margin: 8px 0 0;
+}
+.weinkart p{
+	
+text-transform:capitalize;
+}
+.karteWhiteLine{
+	background-color: #534F49;
+	border: 0 none;
+	color: #534F49;
+	height: 1px;
+	margin-top: 0;
+}
+.karteTabelleLinks, .karteTabelleRechts {	
+	vertical-align:top;	
+	font-size:14px;
+}
+.karteTabelleRechts{
+	color:#7FA360;
+	line-height: 24px;
+	text-align: right;	
+}

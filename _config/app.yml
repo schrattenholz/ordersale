@@ -1,0 +1,15 @@
+Schrattenholz\Order\Preis:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_PreisExtension
+Schrattenholz\Order\Product:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_ProductExtension
+PageController:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_OrderExtension
+Page:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_OrderExtension
+Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_ProductContainer

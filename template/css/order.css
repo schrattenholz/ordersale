@@ -1,0 +1,5 @@
+.orderlist{
+	-webkit-flex: 0 0 calc(1140px + 30px);
+	-ms-flex: 0 0 calc(1140px + 30px);
+	flex: 0 0 calc(1140px + 30px);
+}

@@ -721,7 +721,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			$clientQuantities=[];
 		}
 		if(!$productDetails->InfiniteInventory){
-			Injector::inst()->get(LoggerInterface::class)->info('CalcReservedQuantity from FreeQuantity');
+			
 			$quantityleft=(($productDetails->Inventory)-($this->CalcReservedQuantity($pd)));
 			if($quantityleft<0){
 				$quantityleft=0;

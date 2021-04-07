@@ -40,7 +40,7 @@ class OrderSale_OrderExtension extends DataExtension {
 		'getSingleProduct',
 		'getLinkCheckoutAddress',
 		'setCheckoutAddress',
-		'getCheckoutAdress',
+		'getCheckoutAddress',
 		'makeOrder',
 		'getLocations',
 		'checkIfProductInBasket',
@@ -775,11 +775,11 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				'Page'=>$this->owner,
 				'BaseHref' => $_SERVER['DOCUMENT_ROOT'],
 				'Basket' => $order,
-				'CheckoutAdress' => $this->getOwner()->getCheckoutAdress(),
+				'CheckoutAddress' => $this->getOwner()->getCheckoutAddress(),
 				'OrderConfig'=>OrderConfig::get()->First()
 		])
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
-		->setTo($this->getOwner()->getCheckoutAdress()->Email)
+		->setTo($this->getOwner()->getCheckoutAddress()->Email)
 		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
 		$email->send();
 		$email = Email::create()
@@ -788,12 +788,12 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			'Page'=>$this->owner,
 			'BaseHref' => $_SERVER['DOCUMENT_ROOT'],
 			'Basket' => $order,
-			'CheckoutAdress' => $this->getOwner()->getCheckoutAdress(),
+			'CheckoutAddress' => $this->getOwner()->getCheckoutAddress(),
 			'OrderConfig'=>OrderConfig::get()->First()
 		])
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo(OrderConfig::get()->First()->OrderEmail)
-		->setSubject("Neue Bestellung |".$order->ID." | ".$this->getOwner()->getCheckoutAdress()->Company." ".$this->getOwner()->getCheckoutAdress()->Surname);
+		->setSubject("Neue Bestellung |".$order->ID." | ".$this->getOwner()->getCheckoutAddress()->Company." ".$this->getOwner()->getCheckoutAddress()->Surname);
 		}
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);

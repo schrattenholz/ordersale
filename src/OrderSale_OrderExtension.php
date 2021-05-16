@@ -751,7 +751,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		}else{
 			$order=$order->First();
 		}
-		
+		$checkoutAddress=$this->getOwner()->getCheckoutAddress();
 		$vars=new ArrayData(array("Basket"=>$basket,"Order"=>$order));
 		$this->owner->extend('makeOrder_ClientOrder', $vars);
 		$order->AdditionalNotes=$basket->AdditionalNotes;
@@ -769,36 +769,39 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				$product->Inventory=intval($product->Inventory)-intval($pc->Quantity);
 				$product->write();
 			}
-		$email = Email::create()
+		$emailToClient = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\ConfirmationClient') 
 		->setData([
 				'Page'=>$this->owner,
 				'BaseHref' => $_SERVER['DOCUMENT_ROOT'],
 				'Basket' => $order,
-				'CheckoutAddress' => $this->getOwner()->getCheckoutAddress(),
+				'CheckoutAddress' => $checkoutAddress,
 				'OrderConfig'=>OrderConfig::get()->First()
 		])
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
-		->setTo($this->getOwner()->getCheckoutAddress()->Email)
+		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
-		$email->send();
-		$email = Email::create()
+		$emailToClient->send();
+		$emailToOwner = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
 			'Page'=>$this->owner,
 			'BaseHref' => $_SERVER['DOCUMENT_ROOT'],
 			'Basket' => $order,
-			'CheckoutAddress' => $this->getOwner()->getCheckoutAddress(),
+			'CheckoutAddress' => $checkoutAddress,
 			'OrderConfig'=>OrderConfig::get()->First()
 		])
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo(OrderConfig::get()->First()->OrderEmail)
-		->setSubject("Neue Bestellung |".$order->ID." | ".$this->getOwner()->getCheckoutAddress()->Company." ".$this->getOwner()->getCheckoutAddress()->Surname);
+		->setSubject("Neue Bestellung |".$order->ID." | ".$checkoutAddress->Company." ".$checkoutAddress->Surname);
+		
+		$vars=new ArrayData(array("Email"=>$emailToSeller,"CheckoutAddress"=>$checkoutAddress));
+		$this->owner->extend('makeOrder_EmailToOwner', $vars);
 		}
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		if($email->send()){
+		if($emailToOwner->send()){
 			//$this->getOwner()->ClearBasket();
 			
 		}

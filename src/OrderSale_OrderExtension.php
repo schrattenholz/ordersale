@@ -782,7 +782,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
 		$emailToClient->send();
-		$emailToOwner = Email::create()
+		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
 			'Page'=>$this->owner,
@@ -801,7 +801,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		if($emailToOwner->send()){
+		if($emailToSeller->send()){
 			//$this->getOwner()->ClearBasket();
 			
 		}

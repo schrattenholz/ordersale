@@ -795,7 +795,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setTo(OrderConfig::get()->First()->OrderEmail)
 		->setSubject("Neue Bestellung |".$order->ID." | ".$checkoutAddress->Company." ".$checkoutAddress->Surname);
 		
-		$vars=new ArrayData(array("Email"=>$emailToSeller,"CheckoutAddress"=>$checkoutAddress));
+		$vars=new ArrayData(array("Email"=>$emailToSeller,"CheckoutAddress"=>$checkoutAddress,"Order"=>$order));
 		$this->owner->extend('makeOrder_EmailToSeller', $vars);
 		}
 		//$order->ProductContainers()->write();

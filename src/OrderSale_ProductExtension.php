@@ -48,7 +48,6 @@ class OrderSale_ProductExtension extends DataExtension{
 	private static $db=[
 		'InPreSale' => 'Boolean',
 		'PreSaleStart'=>'Date',
-		'PreSaleEnd'=>'Date',
 		'PreSaleInventory'=>'Int',
 		'ResetPreSale'=>'Boolean',
 		'InSale'=>'Boolean',
@@ -60,7 +59,7 @@ class OrderSale_ProductExtension extends DataExtension{
 	
 	// Extension for Product::getCMSFields
 	public function addExtension(FieldList $fields){
-		
+		/*
 		//Vorverkauf
 		
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new CheckboxField('InPreSale','Vorverkauf'));
@@ -70,9 +69,7 @@ class OrderSale_ProductExtension extends DataExtension{
 		$fields->addFieldToTab('Root.Verkaufsaktionen',$preSaleStartInventory);
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new CheckboxField('ResetPreSale','Vorverkauf zurücksetzen'));
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new DateField('PreSaleStart','Start des Vorverkauf'));
-		$fields->addFieldToTab('Root.Verkaufsaktionen',new DateField('PreSaleEnd','Ende des Vorverkauf'));
 		//$fields->addFieldToTab('Root.Verkaufsaktionen',new LiteralField('Spacer','</hr>'));
-		/*
 		//Rabatt-Aktion
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new CheckboxField('InSale','Rabatt-Aktion'));
 		$saleDiscount=new NumericField("SaleDiscount","Preisrabatt in Prozent");

@@ -157,8 +157,7 @@ class OrderSale_OrderExtension extends DataExtension {
 		return OrderCustomerGroup::get()->filter('GroupID',$this->getOwner()->CurrentGroup()->ID)->First()->ID;
 	}
 	public function addProduct($pd){
-		
-
+Injector::inst()->get(LoggerInterface::class)->error('addProduct-----------------');
 		//neues Produkt anlegen
 			$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
 			$basket=$this->getOwner()->getBasket();
@@ -564,7 +563,7 @@ class OrderSale_OrderExtension extends DataExtension {
 		}
 		if(isset($_GET['id']) || $priceBlockElementID){
 			// //spezifisches Produkt benutzen
-			Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ spezifisches Produkt benutzen id='.$_GET['id']." priceBlockElementID=".$priceBlockElementID);
+			Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ spezifisches Produkt benutzen');
 			//$quantity=$this->owner->checkIfProductInBasket(array('id'=>$product->ID,'variant01'=>$variantID,'vac'=>$_GET['vac'],'productID'=>$this->owner->ID));
 			if($priceBlockElementID){
 				$variantID=$priceBlockElementID;
@@ -585,15 +584,13 @@ class OrderSale_OrderExtension extends DataExtension {
 		}else{
 			
 			// default-Produkt benutzen
-			Injector::inst()->get(LoggerInterface::class)->error('OrderSale_OrderExtension:loadSelectedParameters -> default Produkt benutzen');
 			if($product->GroupPreise()->Count()>0){
 				
 				$variantID=$product->GroupPreise()->Sort('SortID','ASC')->First()->ID;
 				$quantities=$this->owner->FreeQuantity(array('id'=>$product->ID,'variant01'=>$variantID,'productID'=>$product->ID));
 				$quantity=$quantities['ClientsQuantity'];
-				
+				$quantity=0;
 				if($quantities['ClientQuantities']){
-					$quantity=0;
 					foreach($quantities['ClientQuantities'] as $cq){
 						$defaultFound=true;
 						foreach($cq->ProductOptions as $po){
@@ -616,22 +613,20 @@ class OrderSale_OrderExtension extends DataExtension {
 				
 				return new ArrayData(['ProductDetails'=>$quantities['ProductDetails'],'ClientsQuantityMax'=>$clientsQuantityMax,'Quantity'=>$quantities['ClientsQuantity'],'QuantityLeft'=>$quantities['QuantityLeft'],'Variant01'=>$variantID]);
 			}else{
-				Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ keine Staffelpreise');
+				
 				$quantities=$this->owner->FreeQuantity(array('id'=>$product->ID,'productID'=>$product->ID,'productoptions'=>$product->ProductOptions()));
 				$quantity=0;
 				if($quantities['ClientQuantities']){
 					foreach($quantities['ClientQuantities'] as $cq){
-						Injector::inst()->get(LoggerInterface::class)->error('---- cq->ProductContainerID'.$cq->ProductContainerID." ----");
 						$defaultFound=true;
 						foreach($cq->ProductOptions as $po){
 							
 							if($po->Active){
-								Injector::inst()->get(LoggerInterface::class)->error(' cq->ProductOption'.$po->ID." ".$po->Active);
 								$defaultFound=false;
 							}
 						}
 						if($defaultFound){
-							Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ Default Produkt (ohne aktivierte Produktoptionen) gefunden');
+							
 							$quantity=$cq->Quantity;
 							break;
 						}else{
@@ -692,7 +687,6 @@ class OrderSale_OrderExtension extends DataExtension {
 			if(isset($pd['variant01'])){
 			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
 			}else{
-				
 			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
 			}
 		}else{
@@ -708,7 +702,6 @@ class OrderSale_OrderExtension extends DataExtension {
 		}
 		if($productContainers){
 			$clientsQuantity=$productContainers->First();
-			
 			if($clientsQuantity){
 				$clientsQuantity=$clientsQuantity->Quantity;
 			}else{
@@ -733,7 +726,6 @@ class OrderSale_OrderExtension extends DataExtension {
 			if($quantityleft<0){
 				$quantityleft=0;
 			}
-			
 			return [
 				"ProductDetails"=>$productDetails,
 				"QuantityLeft"=>$quantityleft,

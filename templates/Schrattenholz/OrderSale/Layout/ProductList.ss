@@ -32,7 +32,7 @@
 			<% loop $Children.Sort('Date','DESC') %>
 				<article class="card col-12 col-sm-6 col-md-4 ">
 				<div class="cardlink">
-					<a style="textdecoration:none;" href="$Link"><img class="card-img" src="<% if $ProductImages %>$ProductImages.First.Fill(400,266).URL<% else_if $MainImage %>$MainImage.Fill(400,266).URL<% else %>$BaseHref/resources/vendor/schrattenholz/order/theme/images/default.jpg<% end_if %>" alt="$MainImage.Filename"></a>
+					<a style="textdecoration:none;" href="$Link"><img class="card-img" src="$Default.First.Fill(400,266).URL" alt="$DefaultImage.Filename"></a>
 					<% if not $Top.HideLabel %>
 					<!--
 					<div class="tag">

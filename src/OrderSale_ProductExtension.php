@@ -128,7 +128,7 @@ class OrderSale_ProductExtension extends DataExtension{
 						return NumericField::create($column)->setScale(2);
 				})
 		));
-		$fields->addFieldToTab('Root.Staffelpreise', GridField::create(
+		$fields->addFieldToTab('Root.Produktvarianten', GridField::create(
 			'Preise',
 			'Staffelelemente',
 			$this->getOwner()->Preise()->sort('SortOrder'),
@@ -138,9 +138,9 @@ class OrderSale_ProductExtension extends DataExtension{
 		
 		
 		
-		//Staffelpreise, erweitert um Quantity
+		//Produktvarianten, erweitert um Quantity
 		/*
-		$fields->addFieldToTab('Root.Staffelpreise', $gridfield=GridField::create(
+		$fields->addFieldToTab('Root.Produktvarianten', $gridfield=GridField::create(
 			'Preise',
 			'Staffelelemente',
 			$this->getOwner()->Preise()->sort('SortOrder'),
@@ -169,7 +169,7 @@ class OrderSale_ProductExtension extends DataExtension{
 		}
 	}
 	public function onBeforeWrite(){
-		//Wenn ResetSale gesetzt ist, werden die Verkaufszahlen in den Staffelpreisen auf 0 gesetzt
+		//Wenn ResetSale gesetzt ist, werden die Verkaufszahlen in den Produktvariantenn auf 0 gesetzt
 		if($this->getOwner()->ResetSale){
 			$this->getOwner()->resetSale();
 			$this->getOwner()->ResetSale=0;
@@ -177,7 +177,7 @@ class OrderSale_ProductExtension extends DataExtension{
 		parent::onBeforeWrite();
 	}
 	public function resetSale(){
-		// Reset der Verkaufzahlen in den Staffelpreise auf 0
+		// Reset der Verkaufzahlen in den Produktvarianten auf 0
 		foreach($this->getOwner()->Preise() as $pBE){
 			$pBE->SoldQuantity=0;
 			$pBE->write();

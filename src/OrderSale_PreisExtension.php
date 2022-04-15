@@ -133,15 +133,26 @@ class OrderSale_PreisExtension extends DataExtension{
 	public function ActivePreSale(){
 		$heute = strtotime(date("Y-m-d"));
 		//Injector::inst()->get(LoggerInterface::class)->error($heute.' activepresale presalestart='.strtotime($this->owner->PreSaleStart));
-		if($this->owner->InPreSale && $heute >= strtotime($this->owner->PreSaleStart) && $heute <= strtotime($this->owner->PreSaleEnd)){
-			return true;
+		if($this->owner->PreSaleEnd){
+			//Vorverkauf mit festem Enddatum
+			if($this->owner->InPreSale && $heute >= strtotime($this->owner->PreSaleStart) && $heute <= strtotime($this->owner->PreSaleEnd)){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
-			return false;
+			//Abverkauf bis alles weg ist,... keine Enddatum
+			if($this->owner->InPreSale && $heute >= strtotime($this->owner->PreSaleStart)){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 	public function IsActive(){
 		
 		$orderCustomerGroup=$this->owner->OrderCustomerGroups()->filter('GroupID',$this->getOwner()->CurrentGroup()->ID)->First();
+		
 		if($orderCustomerGroup && $this->IsAvailable()){
 			if($this->owner->ActivePreSale() || $this->owner->InPreSale==false){
 				$relPreis=OrderCustomerGroups_Preis::get()->filter('PreisID',$this->owner->ID)->filter('OrderCustomerGroupID',$orderCustomerGroup->ID)->First();
@@ -150,7 +161,6 @@ class OrderSale_PreisExtension extends DataExtension{
 			}else{
 				return false;
 			}
-			
 		}else{
 			return false;
 		}

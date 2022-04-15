@@ -761,8 +761,8 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				$pc->ClientOrderID=$order->ID;
 				$order->ProductContainers()->add($pc);
 				// BasketID auf Null setzten
-				$pc->BasketID=0;
-				$pc->write();
+				//$pc->BasketID=0;
+				//$pc->write();
 				// Warenbestand anpassen
 				
 				$product=$this->owner->getProductDetailsWrapper($pc->ProductID,$pc->PriceBlockElementID);
@@ -781,7 +781,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
-		$emailToClient->send();
+		//$emailToClient->send();
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
@@ -814,10 +814,13 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			'Created:GreaterThanOrEqual'=>strtotime($product->PreSaleStart)
 		]);
 	*/
-	public function AfterMakeOrder($basket){
-		foreach($basket->ProductContainers()->leftJoin('Product','Product.ID=OrderProfileFeature_ProductContainer.ProductID')->where('Product.InPreSale=1') as $pcOrder){
+	public function AfterMakeOrder($order){
+Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder presaleprodukte='.$order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID','Preis')->filter('PriceBlockElement.InPreSale',1)->First()->PriceBlockElement()->Content);
+		foreach($order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID')->where('Preis.InPreSale',1) as $pcOrder){
 			//return $this->getOwner()->httpError(500, 'abverkauf check');
+			Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt');
 			if($pcOrder->PriceBlockElement()->checkSoldQuantity()=="salefinished"){
+				Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrderProdukt ist abverkauft');
 				$priceBlockElements=Product::get()->byID($pcOrder->ProductID)->Preise();
 				$sold=true;
 				foreach($priceBlockElements as $pBE){
@@ -827,7 +830,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				}
 				//throw new ValidationException('Abverkaufte Menge neu berechnen sold='.$sold);
 				if($sold){
-					
+					Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Alle Vorberkauf Produkte verkauft');
 					$email = Email::create()
 						->setHTMLTemplate('Schrattenholz\\OrderSale\\Layout\\SaleFinished') 
 						->setData([

@@ -744,13 +744,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 	public	function makeOrder(){
 		$basket= $this->getOwner()->getBasket();
 		$order=OrderProfileFeature_ClientOrder::get()->filter('ClientContainerID',$basket->ClientContainerID);
-		if($order->Count()==0){
+
 			$order=OrderProfileFeature_ClientOrder::create();
 			$order->ClientContainerID=$basket->ClientContainerID;
-			
-		}else{
-			$order=$order->First();
-		}
+
 		$checkoutAddress=$this->getOwner()->getCheckoutAddress();
 		$vars=new ArrayData(array("Basket"=>$basket,"Order"=>$order));
 		$this->owner->extend('makeOrder_ClientOrder', $vars);
@@ -780,7 +777,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		])
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
-		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
+		->setSubject("Bestellbestätigung | ".$order->ID);
 		$emailToClient->send();
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
@@ -798,7 +795,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$vars=new ArrayData(array("Email"=>$emailToSeller,"CheckoutAddress"=>$checkoutAddress,"Order"=>$order));
 		$this->owner->extend('makeOrder_EmailToSeller', $vars);
 		}
-		//$order->ProductContainers()->write();
+		$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
 		if($emailToSeller->send()){

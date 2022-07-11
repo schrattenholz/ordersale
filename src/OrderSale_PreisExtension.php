@@ -36,6 +36,17 @@ class OrderSale_PreisExtension extends DataExtension{
 		'SaleDiscount'=>'Decimal(6,2)',
 		'SaleFinish'=>'Date'
 	];
+	public function getPreSaleMode(){
+		if($this->owner->InPreSale){
+			if($this->owner->PreSaleEnd){
+				return "presale";
+			}else{
+				return "openpresale";
+			}			
+		}else{
+			return false;
+		}		
+	}
 	public function updateCMSFields(FieldList $fields){
 			$infiniteInventory=new CheckboxField("InfiniteInventory","Das Produkt hat einen unendlichen Bestand.");
 			$fields->addFieldToTab('Root.Main',$infiniteInventory,'OrderCustomerGroups_Preis');

@@ -801,10 +801,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		if($emailToSeller->send()){
+		/*if($emailToSeller->send()){
 			//$this->getOwner()->ClearBasket();
 			
-		}
+		}*/
 	}
 	
 	/*$productContainer=OrderProfileFeature_ProductContainer::get()->filter(
@@ -815,7 +815,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		]);
 	*/
 	public function AfterMakeOrder($order){
-Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder presaleprodukte='.$order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID','Preis')->filter('PriceBlockElement.InPreSale',1)->First()->PriceBlockElement()->Content);
+//Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder presaleprodukte='.$order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID','Preis')->filter('PriceBlockElement.InPreSale',1)->First()->PriceBlockElement()->Content);
 		foreach($order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID')->where('Preis.InPreSale',1) as $pcOrder){
 			//return $this->getOwner()->httpError(500, 'abverkauf check');
 			Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt');

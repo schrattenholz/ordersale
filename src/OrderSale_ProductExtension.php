@@ -126,7 +126,12 @@ class OrderSale_ProductExtension extends DataExtension{
 					'title'=>'Stückzahl',
 					'callback'=>function($record, $column, $grid) {
 						return NumericField::create($column)->setScale(2);
-				})
+				}),
+			'AttributesIntern'  =>array(
+					'title'=>'Intern',
+					'callback'=>function($record, $column, $grid) use($attributesMap){
+						return  ListboxField::create($column,'Attribute',$attributesMap);
+				}),
 		));
 		$fields->addFieldToTab('Root.Produktvarianten', GridField::create(
 			'Preise',

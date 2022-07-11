@@ -761,8 +761,8 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				$pc->ClientOrderID=$order->ID;
 				$order->ProductContainers()->add($pc);
 				// BasketID auf Null setzten
-				//$pc->BasketID=0;
-				//$pc->write();
+				$pc->BasketID=0;
+				$pc->write();
 				// Warenbestand anpassen
 				
 				$product=$this->owner->getProductDetailsWrapper($pc->ProductID,$pc->PriceBlockElementID);
@@ -801,10 +801,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		/*if($emailToSeller->send()){
+		if($emailToSeller->send()){
 			//$this->getOwner()->ClearBasket();
 			
-		}*/
+		}
 	}
 	
 	/*$productContainer=OrderProfileFeature_ProductContainer::get()->filter(

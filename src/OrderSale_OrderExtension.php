@@ -781,7 +781,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung Biolandhof Sehnenmühle | ".$order->ID);
-		//$emailToClient->send();
+		$emailToClient->send();
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([

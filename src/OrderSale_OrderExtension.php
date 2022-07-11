@@ -795,7 +795,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$vars=new ArrayData(array("Email"=>$emailToSeller,"CheckoutAddress"=>$checkoutAddress,"Order"=>$order));
 		$this->owner->extend('makeOrder_EmailToSeller', $vars);
 		}
-		$order->ProductContainers()->write();
+		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
 		if($emailToSeller->send()){

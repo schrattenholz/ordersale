@@ -99,6 +99,21 @@ class OrderSale_OrderExtension extends DataExtension {
 			return false;//$this->getOwner()->httpError(500, 'Basket nicht vorhanden');
 		}
 	}
+	public function OpenPreSaleProductInBasket(){
+		$basket=$this->getOwner()->getBasket();
+		$preSaleProducts=new ArrayList();
+		foreach($basket->ProductContainers() as $pc){			
+			if($pc->PriceBlockElement()->getPreSaleMode()=="openpresale"){
+				$preSaleProducts->push($pc->PriceBlockElement());
+				$deliverySetup= $pc->PriceBlockElement()->DeliverySetup();
+			}		
+		}
+		if(isset($deliverySetup)){
+			return new ArrayData(array("DeliverySetup"=>$deliverySetup,"PreSaleProducts"=>$preSaleProducts));			
+		}else{
+			return false;		
+		}
+	}
 	public function getProductContainer($pd){
 		$basket=$this->getOwner()->getBasket();
 		

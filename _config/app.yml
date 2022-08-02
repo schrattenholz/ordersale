@@ -4,10 +4,10 @@ Schrattenholz\Order\Preis:
 Schrattenholz\Order\Product:
   extensions:
     - Schrattenholz\OrderSale\OrderSale_ProductExtension
-PageController:
+SilverStripe\CMS\Controllers\ContentController:
   extensions:
     - Schrattenholz\OrderSale\OrderSale_OrderExtension
-Page:
+SilverStripe\CMS\Model\SiteTree:
   extensions:
     - Schrattenholz\OrderSale\OrderSale_OrderExtension
 Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer:

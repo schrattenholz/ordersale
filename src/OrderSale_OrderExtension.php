@@ -109,7 +109,7 @@ class OrderSale_OrderExtension extends DataExtension {
 			}		
 		}
 		if(isset($deliverySetup)){
-			return new ArrayData(array("DeliverySetup"=>$deliverySetup,"PreSaleProducts"=>$preSaleProducts));			
+			return new ArrayData(array("DeliverySetup"=>$deliverySetup,"PreSaleProducts"=>$preSaleProducts->removeDuplicates('ID')));			
 		}else{
 			return false;		
 		}

@@ -165,13 +165,13 @@ class OrderSale_PreisExtension extends DataExtension{
 		$orderCustomerGroup=$this->owner->OrderCustomerGroups()->filter('GroupID',$this->getOwner()->CurrentGroup()->ID)->First();
 		
 		if($orderCustomerGroup && $this->IsAvailable()){
-			if($this->owner->ActivePreSale() || $this->owner->InPreSale==false){
+			//if($this->owner->ActivePreSale() || $this->owner->InPreSale==false){
 				$relPreis=OrderCustomerGroups_Preis::get()->filter('PreisID',$this->owner->ID)->filter('OrderCustomerGroupID',$orderCustomerGroup->ID)->First();
 				return $relPreis->Active;
 
-			}else{
+			/*}else{
 				return false;
-			}
+			}*/
 		}else{
 			return false;
 		}

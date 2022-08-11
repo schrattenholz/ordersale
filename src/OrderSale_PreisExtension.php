@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
 class OrderSale_PreisExtension extends DataExtension{
 	private static $db=[
 		'Inventory'=>'Int',
-		'InfiniteInventory'=>'Boolean',
+		'InfiniteInventory'=>'Boolean(1)',
 		'BlockedQuantity'=>'Int',
 		'InPreSale' => 'Boolean',
 		'PreSaleInventory'=>'Int',

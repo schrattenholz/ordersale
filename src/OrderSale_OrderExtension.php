@@ -782,7 +782,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				$product->write();
 			}
 		$emailToClient = Email::create()
-		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\ConfirmationClient') 
+		->setHTMLTemplate('ConfirmationClient') 
 		->setData([
 				'Page'=>$this->owner,
 				'BaseHref' => $_SERVER['DOCUMENT_ROOT'],

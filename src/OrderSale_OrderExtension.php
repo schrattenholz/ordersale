@@ -795,7 +795,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setSubject("Bestellbestätigung | ".$order->ID);
 		$emailToClient->send();
 		$emailToSeller = Email::create()
-		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
+		->setHTMLTemplate('Confirmation') 
 		->setData([
 			'Page'=>$this->owner,
 			'BaseHref' => $_SERVER['DOCUMENT_ROOT'],

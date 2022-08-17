@@ -775,6 +775,8 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				// BasketID auf Null setzten
 				$pc->BasketID=0;
 				$pc->write();
+				$basket->ClientContainerID=0;
+				$basket->write();
 				// Warenbestand anpassen
 				
 				$product=$this->owner->getProductDetailsWrapper($pc->ProductID,$pc->PriceBlockElementID);

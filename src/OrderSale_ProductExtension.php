@@ -29,6 +29,7 @@ use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SwiftDevLabs\DuplicateDataObject\Forms\GridField\GridFieldDuplicateAction;
 use Silverstripe\ORM\ArrayList;
+use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Security\Security;
 use SilverStripe\Core\Injector\Injector;
@@ -187,6 +188,24 @@ class OrderSale_ProductExtension extends DataExtension{
 			$pBE->SoldQuantity=0;
 			$pBE->write();
 		}
+	}
+	public function getSaleStatus(){
+		return $this->owner->Preise();
+		if($this->owner->Preise()->Filter('InPreSale','1')->count()>0){
+			
+			$priceBlockElements=new ArrayList();
+			$startInventory=0;
+			$inventory=0;
+			foreach ($this->Preise()->Filter('InPreSale','1') as $pBe){
+				$startInventory+=$pBe->PreSaleStartInventory;
+				$inventory+=$pBe->Inventory;
+				$priceBlockElements->push(new ArrayData(array("PriceBlockElementID"=>$pBe->ID,"ProductID"=>$this->owner->ID,"PreSaleStartInventory"=>$pBe->PreSaleStartInventory,"Inventory"=>$pBe->Inventory)));
+				
+			}
+			return new ArrayData(array("ProductID"=>$this->owner->ID,"PreSaleStartInventory"=>$startInventory,"Inventory"=>$inventory,"PriceBlockElements"=>$priceBlockElements));
+		}
+		
+		
 	}
 	public function GetActualQuantity($data){
 		$staffelpreis=$this->getOwner()->Preise()->byID($data['variant01']);

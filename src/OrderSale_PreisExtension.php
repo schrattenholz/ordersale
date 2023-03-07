@@ -29,6 +29,7 @@ class OrderSale_PreisExtension extends DataExtension{
 		'BlockedQuantity'=>'Int',
 		'InPreSale' => 'Boolean',
 		'PreSaleInventory'=>'Int',
+		'PreSaleStartInventory'=>'Int',
 		'PreSaleStart'=>'Date',
 		'PreSaleEnd'=>'Date',
 		'ResetPreSale'=>'Boolean',
@@ -36,6 +37,10 @@ class OrderSale_PreisExtension extends DataExtension{
 		'SaleDiscount'=>'Decimal(6,2)',
 		'SaleFinish'=>'Date'
 	];
+	public function getSoldPercentage(){
+		return 100-($this->owner->Inventory/$this->owner->PreSaleStartInventory*100); 
+	}
+
 	public function getPreSaleMode(){
 		if($this->owner->InPreSale){
 			if($this->owner->PreSaleEnd){
@@ -47,6 +52,13 @@ class OrderSale_PreisExtension extends DataExtension{
 			return false;
 		}		
 	}
+	public function getPreSaleStatus(){
+		if($this->owner->InPreSale){
+			return new ArrayList(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->FreeQuantity()]);	 
+		}else{
+			return false;
+		}
+	}
 	public function updateCMSFields(FieldList $fields){
 			$infiniteInventory=new CheckboxField("InfiniteInventory","Das Produkt hat einen unendlichen Bestand.");
 			$fields->addFieldToTab('Root.Main',$infiniteInventory,'OrderCustomerGroups_Preis');
@@ -57,9 +69,11 @@ class OrderSale_PreisExtension extends DataExtension{
 		//Vorverkauf
 		
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new CheckboxField('InPreSale','Vorverkauf'));
-		$preSaleStartInventory=new NumericField("PreSaleInventory","Standardmenge für den Vorverkauf(Wenn der Vorverkauf per Stappelverarbeitung gestartet wird, bekommt das Produkt diesen Bestand zugewiesen.");
+		$preSaleInventory=new NumericField("PreSaleInventory","Standardmenge für den Vorverkauf(Wenn der Vorverkauf per Stappelverarbeitung gestartet wird, bekommt das Produkt diesen Bestand zugewiesen.");
+		$preSaleInventory->setLocale("DE_De");
+		$preSaleStartInventory=new NumericField("PreSaleStartInventory","Anfangsbestand des Vorverkauf");
 		$preSaleStartInventory->setLocale("DE_De");
-		$preSaleStartInventory->setScale(2);
+		$fields->addFieldToTab('Root.Verkaufsaktionen',$preSaleInventory);
 		$fields->addFieldToTab('Root.Verkaufsaktionen',$preSaleStartInventory);
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new CheckboxField('ResetPreSale','Vorverkauf zurücksetzen'));
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new DateField('PreSaleStart','Start des Vorverkauf'));
@@ -75,6 +89,12 @@ class OrderSale_PreisExtension extends DataExtension{
 		$fields->addFieldToTab('Root.Verkaufsaktionen',new DateField('SaleFinish','Ende der Rabatt-Aktion'));
 		*/
 		
+	}
+	public function onBeforeWrite(){
+		parent::onBeforeWrite();
+		if($this->owner->PreSaleStartInventory==0 && $this->owner->InPreSale){
+			$this->owner->PreSaleStartInventory=$this->owner->PreSaleInventory;
+		}
 	}
 	public function onAfterWrite(){
 		parent::onAfterWrite();

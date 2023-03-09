@@ -39,7 +39,12 @@ class OrderSale_PreisExtension extends DataExtension{
 	];
 	public function getSoldPercentage(){
 		//Injector::inst()->get(LoggerInterface::class)->error(' CurrentInventory'.$this->owner->FreeQuantity($this->getPreisDetails())." startIn=".$this->getPreSaleStatus()->StartInventory);
-		return 100-($this->getPreSaleStatus()->CurrentInventory/$this->getPreSaleStatus()->StartInventory*100); 
+		if($this->getPreSaleStatus()->StartInventory>0){
+			return 100-($this->getPreSaleStatus()->CurrentInventory/$this->getPreSaleStatus()->StartInventory*100); 
+		}else{
+			
+			return 0;
+		}
 	}
 	public function Test(){
 			return "muh";

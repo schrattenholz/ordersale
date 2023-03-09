@@ -1,6 +1,7 @@
 Schrattenholz\Order\Preis:
   extensions:
     - Schrattenholz\OrderSale\OrderSale_PreisExtension
+    - Schrattenholz\OrderSale\OrderSale_OrderExtension
 Schrattenholz\Order\Product:
   extensions:
     - Schrattenholz\OrderSale\OrderSale_ProductExtension

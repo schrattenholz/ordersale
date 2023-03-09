@@ -106,6 +106,7 @@ class OrderSale_OrderExtension extends DataExtension {
 			if($pc->PriceBlockElement()->getPreSaleMode()=="openpresale"){
 				$preSaleProducts->push($pc->PriceBlockElement());
 				$deliverySetup= $pc->PriceBlockElement()->DeliverySetup();
+				Injector::inst()->get(LoggerInterface::class)->error('_____ openpresale'.$deliverySetup);
 			}		
 		}
 		if(isset($deliverySetup)){
@@ -522,9 +523,9 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//Daten validieren
 		if($pd['quantity']!=0){
 			if($this->checkIfProductInBasket($pd)){
-				if($action=="add"){
-					//$clientsProductContainer=$this->getProductContainer($pd);
-					$pd['quantity']=$pd['quantity']+$clientsProductContainer;
+				if($action=="list"){
+					$clientsProductContainer=$this->getProductContainer($pd);
+					$pd['quantity']=$pd['quantity']+$clientsProductContainer->Quantity;
 				}
 				//vorhandenes Produkt aktualisieren
 				return $this->editProduct($pd);

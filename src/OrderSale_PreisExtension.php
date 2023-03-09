@@ -10,7 +10,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DateField;
-
+use SilverStripe\View\ArrayData;
 use Schrattenholz\Order\Basket;
 use Schrattenholz\Order\Product;
 use Schrattenholz\Order\Preis;
@@ -38,9 +38,13 @@ class OrderSale_PreisExtension extends DataExtension{
 		'SaleFinish'=>'Date'
 	];
 	public function getSoldPercentage(){
-		return 100-($this->owner->Inventory/$this->owner->PreSaleStartInventory*100); 
+		//Injector::inst()->get(LoggerInterface::class)->error(' CurrentInventory'.$this->owner->FreeQuantity($this->getPreisDetails())." startIn=".$this->getPreSaleStatus()->StartInventory);
+		return 100-($this->getPreSaleStatus()->CurrentInventory/$this->getPreSaleStatus()->StartInventory*100); 
 	}
-
+	public function Test(){
+			return "muh";
+	}
+	
 	public function getPreSaleMode(){
 		if($this->owner->InPreSale){
 			if($this->owner->PreSaleEnd){
@@ -52,12 +56,35 @@ class OrderSale_PreisExtension extends DataExtension{
 			return false;
 		}		
 	}
-	public function getPreSaleStatus(){
+	public function CurrentInventory(){
+		return $this->getPreSaleStatus()->CurrentInventory;
+	}
+	public function SoldInventory(){
+		return $this->getPreSaleStatus()->StartInventory-$this->getPreSaleStatus()->CurrentInventory;
+		
+	}
+	public function SoldRatioInventory(){
+
 		if($this->owner->InPreSale){
-			return new ArrayList(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->FreeQuantity()]);	 
+			return $this->SoldInventory()." / ".$this->owner->PreSaleStartInventory;
+		}else{
+			
+			
+		}
+	}
+	public function getPreSaleStatus(){
+		
+		if($this->owner->InPreSale){
+			return new ArrayData(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
 		}else{
 			return false;
 		}
+	}
+	public function getPreisDetails(){
+		$pd=array();
+		$pd['variant01']=$this->owner->ID;
+		$pd['productID']=$this->owner->ProductID;			
+		return $pd;
 	}
 	public function updateCMSFields(FieldList $fields){
 			$infiniteInventory=new CheckboxField("InfiniteInventory","Das Produkt hat einen unendlichen Bestand.");
@@ -106,7 +133,7 @@ class OrderSale_PreisExtension extends DataExtension{
 			return false;
 		}
 	}
-	public function FreeQuantity(){
+	public function FreePortionalQuantity(){
 		if($this->owner->InfiniteInventory){
 			$fq=10000000;
 		}else{

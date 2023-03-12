@@ -54,7 +54,8 @@ class OrderSale_OrderExtension extends DataExtension {
 		'FreeQuantityAjax',
 		'FreeProductQuantity',
 		'VacReadable',
-		'saveClientOrderTitle'
+		'saveClientOrderTitle',
+		'FreeQuantity_ProductList'
 	);
 	
 
@@ -681,7 +682,21 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		}
 		return json_encode($quantities);
 	}
-	
+	public function FreeQuantity_ProductList($productList){
+		
+		$productList=json_decode(utf8_encode($productList['productList']),true);
+		$productData=array();
+		foreach($productList as $p){
+			$data=$this->FreeQuantity(['productID'=>$p['id'],'variant01'=>$p['variant01']]);
+			$data['ProductID']=$p['id'];
+			$data['VariantID']=$p['variant01'];
+			array_push($productData,$data);
+			Injector::inst()->get(LoggerInterface::class)->error($this->FreeQuantity(['productID'=>$p['id'],'variant01'=>$p['variant01']])['QuantityLeft']);
+			
+		}
+		
+		return json_encode($productData);
+	}
 	public function FreeQuantity($pd){
 
 		$productDetails=$this->owner->getProductDetails($pd);

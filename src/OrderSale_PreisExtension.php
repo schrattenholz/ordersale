@@ -64,26 +64,47 @@ class OrderSale_PreisExtension extends DataExtension{
 	public function CurrentInventory(){
 		return $this->getPreSaleStatus()->CurrentInventory;
 	}
-	public function SoldInventory(){
-		return $this->getPreSaleStatus()->StartInventory-$this->getPreSaleStatus()->CurrentInventory;
-		
-	}
+
 	public function SoldRatioInventory(){
 
 		if($this->owner->InPreSale){
-			return $this->SoldInventory()." / ".$this->owner->PreSaleStartInventory;
+			return $this->PreSale_SoldAndReserved()->Sold."(+".$this->PreSale_SoldAndReserved()->Reserved.")"." / ".$this->owner->PreSaleStartInventory;
 		}else{
 			
 			
 		}
 	}
 	public function getPreSaleStatus(){
-		
+		Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
 		if($this->owner->InPreSale){
 			return new ArrayData(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
 		}else{
 			return false;
 		}
+	}
+	public function PreSale_SoldAndReserved(){
+		$returnValue= new ArrayList();	
+		$productContainers=OrderProfileFeature_ProductContainer::get()->filter([
+			'ProductID'=>$this->owner->ProductID,
+			'PriceBlockElementID'=>$this->owner->ID,
+			'Created:GreaterThanOrEqual'=>$this->owner->PreSaleStart]
+		);
+		
+		
+		// Hole alle schon verkauften Produkte
+		$returnValue->Sold=0;
+		foreach($productContainers->filter(["ClientOrderID:GreaterThan"=>0]) as $pC){
+				Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
+				$returnValue->Sold+=$pC->Quantity;			
+		}
+		// Hole alle reservierten Produkte
+		$returnValue->Reserved=0;		
+		foreach($productContainers->filter(["BasketID:GreaterThan"=>0]) as $pC){
+				Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
+				$returnValue->Reserved+=$pC->Quantity;			
+		}
+		$returnValue->Total=$returnValue->Sold+$returnValue->Reserved;
+		return $returnValue;		
 	}
 	public function getPreisDetails(){
 		$pd=array();

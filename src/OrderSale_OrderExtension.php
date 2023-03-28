@@ -367,7 +367,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$now = date("Y-m-d H:i:s");
 		$timestamp = "2016-04-20 00:37:15";
 		$start_date = date($now);
-		$expires = strtotime('-51 minute', strtotime($now));
+		$expires = strtotime('-11 minute', strtotime($now));
 		$date_diff=($expires-strtotime($now)) / 86400;
 		$productDetails=$this->owner->getProductDetails($pd);
 

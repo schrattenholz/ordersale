@@ -89,8 +89,6 @@ class OrderSale_PreisExtension extends DataExtension{
 			'PriceBlockElementID'=>$this->owner->ID,
 			'Created:GreaterThanOrEqual'=>$this->owner->PreSaleStart]
 		);
-		
-		
 		// Hole alle schon verkauften Produkte
 		$returnValue->Sold=0;
 		foreach($productContainers->filter(["ClientOrderID:GreaterThan"=>0]) as $pC){

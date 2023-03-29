@@ -691,7 +691,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			$data['ProductID']=$p['id'];
 			$data['VariantID']=$p['variant01'];
 			array_push($productData,$data);
-			Injector::inst()->get(LoggerInterface::class)->error($this->FreeQuantity(['productID'=>$p['id'],'variant01'=>$p['variant01']])['QuantityLeft']);
+			//Injector::inst()->get(LoggerInterface::class)->error($this->FreeQuantity(['productID'=>$p['id'],'variant01'=>$p['variant01']])['QuantityLeft']);
 			
 		}
 		
@@ -702,44 +702,35 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$productDetails=$this->owner->getProductDetails($pd);
 		
 		$blockedFromOtherUsers=0;
-		$productContainers=false;
-		if($this->getOwner()->getBasket() && Product::get()->byID($pd['productID'])->InPreSale){
-			// Es besteht fuer den Kunden bereits ein Warenkorb und das Produkt wird abverkauft
-			
-			$formerProductContainers=$this->ReservedProductContainers($pd)->exclude('BasketID',$this->getOwner()->getBasket()->ID);
+		$clientsProductContainer=false;
+		if($this->getOwner()->getBasket()){
+			// Es besteht fuer den Kunden bereits ein Warenkorb, hole die Reservierung des Kunden
+
 			if(isset($pd['variant01'])){
-			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+				$clientsProductContainer=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID])->First();
 			
 			}else{
-			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+				$clientsProductContainer=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID])->First();
 			}
-		}else if($this->getOwner()->getBasket() && !Product::get()->byID($pd['productID'])->InPreSale){
-			// Kein Abverkauf und es besteht ein Warenkorb
-			if(isset($pd['variant01'])){
-			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
-			}else{
-			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
-			}
-		}else{
-			$formerProductContainers=$this->ReservedProductContainers($pd);
 		}
+		$startInventory=0;
 		if($productDetails->InPreSale){
-			// Wen es ein Abverkauf ist, muss die Verkaufanzahl ermittelt werden
-			if(isset($formerProductContainers)){
-				foreach ($formerProductContainers as $pC){
-						$blockedFromOtherUsers=$blockedFromOtherUsers+$pC->Quantity;
-				}
-			}
+			// Wen es ein Abverkauf ist, hole die Verkaufszahlen
+			
+			$soldAndReserved=$productDetails->PreSale_SoldAndReserved();
+			$reservedQuantity=$soldAndReserved->Reserved;
+			$startInventory=$productDetails->PreSaleStartInventory;
+			$quantityleft=$startInventory-$soldAndReserved->Total;
 		}
-		if($productContainers){
-			$clientsQuantity=$productContainers->First();
+		if($clientsProductContainer){
+			$clientsQuantity=$clientsProductContainer;
 			if($clientsQuantity){
 				$clientsQuantity=$clientsQuantity->Quantity;
 			}else{
 				$clientsQuantity=0;
 			}
 			$clientQuantities=new ArrayList();
-			foreach($productContainers as $pC){
+			foreach($clientsProductContainer as $pC){
 				$pos=new ArrayList();
 				foreach($pC->ProductOptions() as $po){
 					$po_pc=ProductOptions_ProductContainer::get()->filter(["ProductOptionID"=>$po->ID,"OrderProfileFeature_ProductContainerID"=>$pC->ID])->First();
@@ -753,7 +744,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		}
 		if(!$productDetails->InfiniteInventory){
 			
-			$quantityleft=(($productDetails->Inventory)-($this->CalcReservedQuantity($pd)));
+			//$quantityleft=(($productDetails->Inventory)-($this->CalcReservedQuantity($pd)));
 			if($quantityleft<0){
 				$quantityleft=0;
 			}
@@ -761,6 +752,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				"ProductDetails"=>$productDetails,
 				"QuantityLeft"=>$quantityleft,
 				"ClientsQuantity"=>$clientsQuantity,
+				"StartInventory"=>$startInventory,
 				"ClientQuantities"=>$clientQuantities
 			];
 		}else{
@@ -768,6 +760,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				"ProductDetails"=>$productDetails,
 				"QuantityLeft"=>"Auf Lager",
 				"ClientsQuantity"=>$clientsQuantity,
+				"StartInventory"=>$startInventory,
 				"ClientQuantities"=>$clientQuantities
 			];
 		}

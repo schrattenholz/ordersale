@@ -697,6 +697,83 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		
 		return json_encode($productData);
 	}
+	/*
+	public function FreeQuantity($pd){
+
+		$productDetails=$this->owner->getProductDetails($pd);
+		
+		$blockedFromOtherUsers=0;
+		$productContainers=false;
+		if($this->getOwner()->getBasket() && Product::get()->byID($pd['productID'])->InPreSale){
+			// Es besteht fuer den Kunden bereits ein Warenkorb und das Produkt wird abverkauft
+			
+			$formerProductContainers=$this->ReservedProductContainers($pd)->exclude('BasketID',$this->getOwner()->getBasket()->ID);
+			if(isset($pd['variant01'])){
+			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+			
+			}else{
+			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+			}
+		}else if($this->getOwner()->getBasket() && !Product::get()->byID($pd['productID'])->InPreSale){
+			// Kein Abverkauf und es besteht ein Warenkorb
+			if(isset($pd['variant01'])){
+			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'PriceBlockElementID'=>$pd['variant01'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+			}else{
+			$productContainers=OrderProfileFeature_ProductContainer::get()->filter(['ProductID'=>$pd['productID'],'BasketID'=>$this->getOwner()->getBasket()->ID]);
+			}
+		}else{
+			$formerProductContainers=$this->ReservedProductContainers($pd);
+		}
+		if($productDetails->InPreSale){
+			// Wen es ein Abverkauf ist, muss die Verkaufanzahl ermittelt werden
+			if(isset($formerProductContainers)){
+				foreach ($formerProductContainers as $pC){
+						$blockedFromOtherUsers=$blockedFromOtherUsers+$pC->Quantity;
+				}
+			}
+		}
+		if($productContainers){
+			$clientsQuantity=$productContainers->First();
+			if($clientsQuantity){
+				$clientsQuantity=$clientsQuantity->Quantity;
+			}else{
+				$clientsQuantity=0;
+			}
+			$clientQuantities=new ArrayList();
+			foreach($productContainers as $pC){
+				$pos=new ArrayList();
+				foreach($pC->ProductOptions() as $po){
+					$po_pc=ProductOptions_ProductContainer::get()->filter(["ProductOptionID"=>$po->ID,"OrderProfileFeature_ProductContainerID"=>$pC->ID])->First();
+					$pos->push(new ArrayData(["ID"=>$po->ID,"Active"=>$po_pc->Active,"Price"=>$po_pc->Price]));
+				}
+				$pcArray=$clientQuantities->push(new ArrayData(["ProductContainerID"=>$pC->ID,"Quantity"=>$pC->Quantity,"ProductOptions"=>$pos]));
+			}
+		}else{
+			$clientsQuantity=0;
+			$clientQuantities=[];
+		}
+		if(!$productDetails->InfiniteInventory){
+			
+			$quantityleft=(($productDetails->Inventory)-($this->CalcReservedQuantity($pd)));
+			if($quantityleft<0){
+				$quantityleft=0;
+			}
+			return [
+				"ProductDetails"=>$productDetails,
+				"QuantityLeft"=>$quantityleft,
+				"ClientsQuantity"=>$clientsQuantity,
+				"ClientQuantities"=>$clientQuantities
+			];
+		}else{
+			return [
+				"ProductDetails"=>$productDetails,
+				"QuantityLeft"=>"Auf Lager",
+				"ClientsQuantity"=>$clientsQuantity,
+				"ClientQuantities"=>$clientQuantities
+			];
+		}
+	}
+	*/
 	public function FreeQuantity($pd){
 
 		$productDetails=$this->owner->getProductDetails($pd);

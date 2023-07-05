@@ -36,7 +36,7 @@ use SilverStripe\Core\Injector\Injector;
 use Psr\Log\LoggerInterface;
 use Silverstripe\Security\Group;
 use SilverStripe\ORM\ValidationException;
-
+use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer;
 use SilverStripe\Forms\ListboxField;
 
 use Schrattenholz\Order\Attribute;
@@ -210,6 +210,28 @@ class OrderSale_ProductExtension extends DataExtension{
 	public function GetActualQuantity($data){
 		$staffelpreis=$this->getOwner()->Preise()->byID($data['variant01']);
 		return ($staffelpreis->Quantity)-($staffelpreis->BlockedQuantity);
+	}
+	public function Reserved(){
+		
+		//Produkte können 11 Minuten reserviert werden, Ältere in ProductContainer befindliche Produkte sind verkauft und nicht reserviert 
+		$now = date("Y-m-d H:i:s");
+		$timestamp = "2016-04-20 00:37:15";
+		$start_date = date($now);
+		$expires = strtotime('-11 minute', strtotime($now));
+		$date_diff=($expires-strtotime($now)) / 86400;
+		$product=$this->owner;
+		
+		
+		$reservedQuantity=0;
+		$pCs=OrderProfileFeature_ProductContainer::get()->filter([
+			'ProductID'=>$this->owner->ProductID,
+			'PriceBlockElementID'=>0,
+			'Basket.LastEdited:GreaterThanOrEqual'=>$expires
+		]);
+		foreach($pCs as $pC){	
+			$reservedQuantity+=$pC->Quantity;	
+		}
+		return $reservedQuantity;
 	}
 	private function BlockQuantitiy($q,$variant01){
 		//Reservierte Stueckzahl in der Datenbank blockieren

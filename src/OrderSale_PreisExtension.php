@@ -35,7 +35,8 @@ class OrderSale_PreisExtension extends DataExtension{
 		'ResetPreSale'=>'Boolean',
 		'InSale'=>'Boolean',
 		'SaleDiscount'=>'Decimal(6,2)',
-		'SaleFinish'=>'Date'
+		'SaleFinish'=>'Date',
+		'PreSaleEndPercentage'=>'Enum("25,50,75,100","100")'
 	];
 	public function getSoldPercentage(){
 		//Injector::inst()->get(LoggerInterface::class)->error(' CurrentInventory'.$this->owner->FreeQuantity($this->getPreisDetails())." startIn=".$this->getPreSaleStatus()->StartInventory);
@@ -75,12 +76,34 @@ class OrderSale_PreisExtension extends DataExtension{
 		}
 	}
 	public function getPreSaleStatus(){
-		Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
+	//	Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
 		if($this->owner->InPreSale){
 			return new ArrayData(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
 		}else{
 			return false;
 		}
+	}
+	public function Reserved(){
+		
+		//Produkte können 11 Minuten reserviert werden, Ältere in ProductContainer befindliche Produkte sind verkauft und nicht reserviert 
+		$now = date("Y-m-d H:i:s");
+		$timestamp = "2016-04-20 00:37:15";
+		$start_date = date($now);
+		$expires = strtotime('-11 minute', strtotime($now));
+		$date_diff=($expires-strtotime($now)) / 86400;
+		$product=$this->owner;
+		
+		
+		$reservedQuantity=0;
+		$pCs=OrderProfileFeature_ProductContainer::get()->filter([
+			'ProductID'=>$this->owner->ProductID,
+			'PriceBlockElementID'=>$this->owner->ID,
+			'Basket.LastEdited:GreaterThanOrEqual'=>$expires
+		]);
+		foreach($pCs as $pC){	
+			$reservedQuantity+=$pC->Quantity;	
+		}
+		return $reservedQuantity;
 	}
 	public function PreSale_SoldAndReserved(){
 		$returnValue= new ArrayList();	
@@ -92,13 +115,13 @@ class OrderSale_PreisExtension extends DataExtension{
 		// Hole alle schon verkauften Produkte
 		$returnValue->Sold=0;
 		foreach($productContainers->filter(["ClientOrderID:GreaterThan"=>0]) as $pC){
-				Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
+				//Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
 				$returnValue->Sold+=$pC->Quantity;			
 		}
 		// Hole alle reservierten Produkte
 		$returnValue->Reserved=0;		
 		foreach($productContainers->filter(["BasketID:GreaterThan"=>0]) as $pC){
-				Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
+				//Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
 				$returnValue->Reserved+=$pC->Quantity;			
 		}
 		$returnValue->Total=$returnValue->Sold+$returnValue->Reserved;

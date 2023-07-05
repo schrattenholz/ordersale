@@ -55,7 +55,8 @@ class OrderSale_OrderExtension extends DataExtension {
 		'FreeProductQuantity',
 		'VacReadable',
 		'saveClientOrderTitle',
-		'FreeQuantity_ProductList'
+		'FreeQuantity_ProductList',
+		'getPreSale_SoldProducts'
 	);
 	
 
@@ -99,6 +100,28 @@ class OrderSale_OrderExtension extends DataExtension {
 			$this->getOwner()->CreateBasket();
 			return false;//$this->getOwner()->httpError(500, 'Basket nicht vorhanden');
 		}
+	}
+
+	public function getPreSale_SoldProducts(){
+		$pBe_filter=[
+			'InPreSale'=>1
+		];
+		$pBes=Preis::get()->filter($pBe_filter);
+		$products=new ArrayList();
+		$currentInventory=0;
+		$totalStartInventor=0;
+		$data=new ArrayList(["Percent"]);
+		if($pBes->Count()>0){
+			foreach($pBes as $pBe){			
+				$products->push($pBe->Inventory." von ".$pBe->PreSaleStartInventory);
+				$currentInventory+=$pBe->Inventory;
+				$totalStartInventor+=$pBe->PreSaleStartInventory;
+			}
+			$data->Percent=((($currentInventory/$totalStartInventor)*100)-100)*-1;
+			return $data;
+		}else{			
+			return "Kein aktueller Vorverkauf vorhanden";
+		}		
 	}
 	public function OpenPreSaleProductInBasket(){
 		$basket=$this->getOwner()->getBasket();
@@ -591,6 +614,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				$pd=['variant01'=>$variantID,'productID'=>$product->ID];
 				return new ArrayData(['ProductDetails'=>$quantities['ProductDetails'],'ClientsQuantityMax'=>$clientsQuantityMax,'Quantity'=>$quantities['ClientsQuantity'],'QuantityLeft'=>$quantities['QuantityLeft'],'Variant01'=>$variantID]);
 			}else{
+				$variantID=0;
 				$quantities=$this->owner->FreeQuantity(array('id'=>$product->ID,'productID'=>$product->ID));
 
 				$quantity=$quantities['ClientsQuantity'];
@@ -792,12 +816,14 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		}
 		$startInventory=0;
 		if($productDetails->InPreSale){
-			// Wen es ein Abverkauf ist, hole die Verkaufszahlen
-			
+			// Wen es ein Abverkauf ist, hole die Verkaufszahlen		
 			$soldAndReserved=$productDetails->PreSale_SoldAndReserved();
 			$reservedQuantity=$soldAndReserved->Reserved;
 			$startInventory=$productDetails->PreSaleStartInventory;
 			$quantityleft=$startInventory-$soldAndReserved->Total;
+		}else{
+			$startInventory=$productDetails->Inventory;
+			$quantityleft=$startInventory-$productDetails->Reserved();
 		}
 		if($clientsProductContainer){
 			$clientsQuantity=$clientsProductContainer;
@@ -881,7 +907,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung | ".$order->ID);
-		$emailToClient->send();
+		//$emailToClient->send();
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
@@ -901,10 +927,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		if($emailToSeller->send()){
+		//if($emailToSeller->send()){
 			//$this->getOwner()->ClearBasket();
 			
-		}
+		//}
 	}
 	
 	/*$productContainer=OrderProfileFeature_ProductContainer::get()->filter(
@@ -916,20 +942,26 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 	*/
 	public function AfterMakeOrder($order){
 //Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder presaleprodukte='.$order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID','Preis')->filter('PriceBlockElement.InPreSale',1)->First()->PriceBlockElement()->Content);
+		$checkPercent=false;
+		$PreSaleEndPercentage=100;
 		foreach($order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID')->where('Preis.InPreSale',1) as $pcOrder){
 			//return $this->getOwner()->httpError(500, 'abverkauf check');
-			Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt');
+			Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt percent='.$this->getPreSale_SoldProducts()->Percent);
 			if($pcOrder->PriceBlockElement()->checkSoldQuantity()=="salefinished"){
 				Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrderProdukt ist abverkauft');
 				$priceBlockElements=Product::get()->byID($pcOrder->ProductID)->Preise();
 				$sold=true;
+				
 				foreach($priceBlockElements as $pBE){
-					if($pBE->Quantity!=$pBE->SoldQuantity){
+					$PreSaleEndPercentage=$pBE->PreSaleEndPercentage;
+					if($pBE->Quantity>0){
 						$sold = false;
 					}
 				}
 				//throw new ValidationException('Abverkaufte Menge neu berechnen sold='.$sold);
 				if($sold){
+					
+					$checkPercent=true;
 					Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Alle Vorberkauf Produkte verkauft');
 					$email = Email::create()
 						->setHTMLTemplate('Schrattenholz\\OrderSale\\Layout\\SaleFinished') 
@@ -940,10 +972,18 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 						])
 						->setFrom(OrderConfig::get()->First()->OrderEmail)
 						->setTo(OrderConfig::get()->First()->OrderEmail)
-						->setSubject("Abverkauf beendet");
-					$email->send();
+						->setSubject("Abverkauf für ".$pcOrder->Product->Titel." beendet");
+					//$email->send();
 				}
 			}
+		}
+		Injector::inst()->get(LoggerInterface::class)->error('Prozent verkauft: '.$this->getPreSale_SoldProducts()->Percent);
+		if($sold or $this->getPreSale_SoldProducts()->Percent>=$PreSaleEndPercentage){
+			
+			Injector::inst()->get(LoggerInterface::class)->error('min '.$PreSaleEndPercentage.' Prozent verkauft=');
+			
+		
+
 		}
 		$this->getOwner()->ClearBasket();
 	}

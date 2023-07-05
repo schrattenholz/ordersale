@@ -625,9 +625,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		}else{
 			
 			// default-Produkt benutzen
+			Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ default-Produkt benutzen');
 			if($product->GroupPreise()->Count()>0){
-				Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ default-Produkt benutzen');
-				$variantID=$product->GroupPreise()->Sort('SortID','ASC')->First()->ID;
+				Injector::inst()->get(LoggerInterface::class)->error('-----------------____-----_____ suche default-Produkt mit Bestand');
+				$variantID=$product->GroupPreise()->Sort('SortID','ASC')->Filter(["Inventory:GreaterThan"=>"0"])->First()->ID;
 				$quantities=$this->owner->FreeQuantity(array('id'=>$product->ID,'variant01'=>$variantID,'productID'=>$product->ID));
 				$quantity=$quantities['ClientsQuantity'];
 				$quantity=0;

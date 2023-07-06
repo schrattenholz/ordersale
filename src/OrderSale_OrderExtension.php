@@ -945,9 +945,11 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 //Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder presaleprodukte='.$order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID','Preis')->filter('PriceBlockElement.InPreSale',1)->First()->PriceBlockElement()->Content);
 		$checkPercent=false;
 		$PreSaleEndPercentage=100;
+		$preSaleProductFound=false;
 		foreach($order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID')->where('Preis.InPreSale',1) as $pcOrder){
 			//return $this->getOwner()->httpError(500, 'abverkauf check');
 			Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt percent='.$this->getPreSale_SoldProducts()->Percent);
+			$preSaleProductFound=true;
 			if($pcOrder->PriceBlockElement()->checkSoldQuantity()=="salefinished"){
 				Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrderProdukt ist abverkauft');
 				$priceBlockElements=Product::get()->byID($pcOrder->ProductID)->Preise();
@@ -979,7 +981,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			}
 		}
 		Injector::inst()->get(LoggerInterface::class)->error('Prozent verkauft: '.$this->getPreSale_SoldProducts()->Percent);
-		if($sold or $this->getPreSale_SoldProducts()->Percent>=$PreSaleEndPercentage){
+		if($sold && $preSaleProductFound or $this->getPreSale_SoldProducts()->Percent>=$PreSaleEndPercentage && $preSaleProductFound){
 			
 			Injector::inst()->get(LoggerInterface::class)->error('min '.$PreSaleEndPercentage.' Prozent verkauft=');
 			

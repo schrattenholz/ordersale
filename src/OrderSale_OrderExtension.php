@@ -946,6 +946,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$checkPercent=false;
 		$PreSaleEndPercentage=100;
 		$preSaleProductFound=false;
+		$sold=false;
 		foreach($order->ProductContainers()->leftJoin('Preis','Preis.ID=OrderProfileFeature_ProductContainer.PriceBlockElementID')->where('Preis.InPreSale',1) as $pcOrder){
 			//return $this->getOwner()->httpError(500, 'abverkauf check');
 			//Injector::inst()->get(LoggerInterface::class)->error(' OrderSale_OrderExtension/AfterMakeOrder Warenkorb hat Abverkaufprodukt percent='.$this->getPreSale_SoldProducts()->Percent);

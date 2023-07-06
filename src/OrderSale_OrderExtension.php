@@ -980,7 +980,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 				}
 			}
 		}
-		Injector::inst()->get(LoggerInterface::class)->error('Prozent verkauft: '.$this->getPreSale_SoldProducts()->Percent);
+		//Injector::inst()->get(LoggerInterface::class)->error('Prozent verkauft: '.$this->getPreSale_SoldProducts()->Percent);
 		if($sold && $preSaleProductFound or $this->getPreSale_SoldProducts()->Percent>=$PreSaleEndPercentage && $preSaleProductFound){
 			
 			Injector::inst()->get(LoggerInterface::class)->error('min '.$PreSaleEndPercentage.' Prozent verkauft=');

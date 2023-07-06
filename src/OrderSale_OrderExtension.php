@@ -908,7 +908,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung | ".$order->ID);
-		//$emailToClient->send();
+		$emailToClient->send();
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
@@ -928,10 +928,10 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
 		
-		//if($emailToSeller->send()){
+		if($emailToSeller->send()){
 			//$this->getOwner()->ClearBasket();
 			
-		//}
+		}
 	}
 	
 	/*$productContainer=OrderProfileFeature_ProductContainer::get()->filter(

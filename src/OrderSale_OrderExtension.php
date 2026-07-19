@@ -541,7 +541,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 		$action=$data['action'];
 		$error=false;
 		
-		$pd=$this->owner->genProductdata(json_decode(utf8_encode($data['orderedProduct']),true));
+		$pd=$this->owner->genProductdata(json_decode($data['orderedProduct'],true));
 
 		$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
 		//Daten validieren
@@ -686,7 +686,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 	}
 	
 	public function FreeQuantityAjax($data){
-		$pd=$this->owner->genProductdata(json_decode(utf8_encode($data['orderedProduct']),true));
+		$pd=$this->owner->genProductdata(json_decode($data['orderedProduct'],true));
 		$quantities=$this->owner->FreeQuantity($pd);
 		$quantities['ProductDetails']=$this->owner->getProductDetails($pd)->getQueriedDatabaseFields();
 		/*$quantities['ProductDetails']['Portion']=$this->owner->getProductDetails($pd)->Portion;
@@ -709,7 +709,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 	}
 	public function FreeQuantity_ProductList($productList){
 		
-		$productList=json_decode(utf8_encode($productList['productList']),true);
+		$productList=json_decode($productList['productList'],true);
 		$productData=array();
 		foreach($productList as $p){
 			$data=$this->FreeQuantity(['productID'=>$p['id'],'variant01'=>$p['variant01']]);

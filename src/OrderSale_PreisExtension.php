@@ -3,14 +3,14 @@
 namespace Schrattenholz\OrderSale;
 
 
-use Silverstripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DateField;
-use SilverStripe\View\ArrayData;
+use SilverStripe\Model\ArrayData;
 use Schrattenholz\Order\Basket;
 use Schrattenholz\Order\Product;
 use Schrattenholz\Order\Preis;
@@ -22,7 +22,7 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use Psr\Log\LoggerInterface;
 
-class OrderSale_PreisExtension extends DataExtension{
+class OrderSale_PreisExtension extends Extension{
 	private static $db=[
 		'Inventory'=>'Int',
 		'InfiniteInventory'=>'Boolean(1)',

@@ -6,17 +6,17 @@ use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer;
 use Schrattenholz\Order\Product;
 use Schrattenholz\OrderProfileFeature\OrderProfileFeature_Basket;
 use Schrattenholz\Order\Preis;
-use Silverstripe\ORM\DataObject;
-use Silverstripe\ORM\DataExtension;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\LiteralField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator as RequiredFields;
 use SilverStripe\ORM\ValidationException;
-class OrderSale_ProductContainer extends DataExtension{
+class OrderSale_ProductContainer extends Extension{
 	
 	public function onBeforeWrite(){
 		if($this->getOwner()->ProductID!=0 && $this->getOwner()->PriceBlockElementID!=0 & $this->getOwner()->Quantity<1)

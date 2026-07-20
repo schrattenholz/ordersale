@@ -3,11 +3,10 @@
 namespace Schrattenholz\OrderSale;
 
 
-use Silverstripe\ORM\DataExtension;
 use SilverStripe\Core\Extension;
 use SilverStripe\ORM\DataList;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Model\ArrayData;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\HTTPRequest;
 
@@ -31,7 +30,7 @@ use Schrattenholz\OrderProfileFeature\ProductOptions_Preis;
 use SilverStripe\ORM\ValidationException;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
-class OrderSale_OrderExtension extends DataExtension {
+class OrderSale_OrderExtension extends Extension {
 	private static $allowed_actions = array (
 		'ClearBasket',
 		'addToList',

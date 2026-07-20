@@ -2,7 +2,7 @@
 
 namespace Schrattenholz\OrderSale;
 
-use Silverstripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\NumericField;
@@ -28,19 +28,19 @@ use SilverStripe\Forms\GridField\GridField_ActionMenu;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SwiftDevLabs\DuplicateDataObject\Forms\GridField\GridFieldDuplicateAction;
-use Silverstripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Model\ArrayData;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Security\Security;
 use SilverStripe\Core\Injector\Injector;
 use Psr\Log\LoggerInterface;
-use Silverstripe\Security\Group;
+use SilverStripe\Security\Group;
 use SilverStripe\ORM\ValidationException;
 use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer;
 use SilverStripe\Forms\ListboxField;
 
 use Schrattenholz\Order\Attribute;
-class OrderSale_ProductExtension extends DataExtension{
+class OrderSale_ProductExtension extends Extension{
 
 	private static $allowed_actions = array (
 		'GetActualQuantity',

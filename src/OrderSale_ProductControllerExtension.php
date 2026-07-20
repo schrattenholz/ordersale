@@ -2,7 +2,7 @@
 
 namespace Schrattenholz\OrderSale;
 
-use Silverstripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\NumericField;
@@ -24,13 +24,13 @@ use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
-use Silverstripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Security\Security;
-use Silverstripe\Security\Group;
+use SilverStripe\Security\Group;
 use SilverStripe\ORM\ValidationException;
 
-class OrderSale_ProductControllerExtension extends DataExtension{
+class OrderSale_ProductControllerExtension extends Extension{
 	private static $allowed_actions = ["ProductTest"];
 	public function ProductTest(){
 		return "ProductTest";

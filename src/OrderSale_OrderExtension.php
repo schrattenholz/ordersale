@@ -196,31 +196,29 @@ class OrderSale_OrderExtension extends Extension {
 		return OrderCustomerGroup::get()->filter('GroupID',$this->getOwner()->CurrentGroup()->ID)->First()->ID;
 	}
 	public function addProduct($pd){
-Injector::inst()->get(LoggerInterface::class)->error('addProduct-----------------');
 		//neues Produkt anlegen
 			$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
 			$basket=$this->getOwner()->getBasket();
 			$productContainer=OrderProfileFeature_ProductContainer::create();
 			$productContainer->ProductID=$pd['productID'];
-			
+
 			$productDetails=$this->owner->getProductDetails($pd);
-			
 
 			if(isset($pd['variant01'])){
 				$productContainer->PriceBlockElementID=$pd['variant01'];
 			}
-			
+
 			//Berechnung ob quantity noch voll vorhanden ist
 			$possibleQuantity=$this->QuantityCheck($pd);
-			
+
 			if($pd['quantity']==$possibleQuantity || $productDetails->InfiniteInventory){
 				//Quantity ist noch vorhanden
 				$productContainer->Quantity=(int)$pd['quantity'];
-				
-				$productContainer->ProductSort=Product::get()->byID($pd['productID'])->GlobalProductSort;
-				
+
+				$productContainer->ProductSort=(string)Product::get()->byID($pd['productID'])->GlobalProductSort;
+
 				$basket->ProductContainers()->add($productContainer);
-				
+
 				$this->owner->addProductOptions($pd,$productContainer);
 				//return $this->getOwner()->httpError(500,'addProduct: ausverkuft '.$productContainer->Quantity." quan=".$pd['quantity']);
 				//return '1|added|'.$this->ProductsInBasket();
@@ -258,7 +256,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			}else if($possibleQuantity>0){
 				// Quantity wird uaf moeglichen Wert herabgesetzt
 				$productContainer->Quantity=$possibleQuantity;
-				$productContainer->ProductSort=Product::get()->byID($pd['productID'])->GlobalProductSort;
+				$productContainer->ProductSort=(string)Product::get()->byID($pd['productID'])->GlobalProductSort;
 				$basket->ProductContainers()->add($productContainer);
 				$this->owner->addProductOptions($pd,$productContainer);
 				//return "2|quantityrecalculated|".$this->ProductsInBasket();
@@ -328,7 +326,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			//return $this->getOwner()->httpError(500,$pd['productID']."editProduct GlobalProductSort=".Product::get()->byID($pd['productID'])->GlobalProductSort);
 			//Quantity ist noch vorhanden
 			$productContainer->Quantity=$pd['quantity'];
-			$productContainer->ProductSort=Product::get()->byID($pd['productID'])->GlobalProductSort;
+			$productContainer->ProductSort=(string)Product::get()->byID($pd['productID'])->GlobalProductSort;
 			if($productContainer->write()){
 				//return '1|edited|'.$this->ProductsInBasket();
 				$returnValues->Status='good';
@@ -361,7 +359,7 @@ Injector::inst()->get(LoggerInterface::class)->error('addProduct----------------
 			// Quantity wird uaf moeglichen Wert herabgesetzt
 			$productContainer->Quantity=$possibleQuantity;
 			//return $this->getOwner()->httpError(500,$pd['productID']."editProduct GlobalProductSort=".Product::get()->byID($pd['productID'])->GlobalProductSort);
-			$productContainer->ProductSort=Product::get()->byID($pd['productID'])->GlobalProductSort;
+			$productContainer->ProductSort=(string)Product::get()->byID($pd['productID'])->GlobalProductSort;
 			//return $this->getOwner()->httpError(500,'editProduct possibleQuantity= '.$possibleQuantity);
 			if($productContainer->write()){
 					$returnValues->Status='info';

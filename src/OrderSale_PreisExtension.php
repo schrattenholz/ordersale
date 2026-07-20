@@ -165,13 +165,11 @@ class OrderSale_PreisExtension extends Extension{
 		
 	}
 	public function onBeforeWrite(){
-		parent::onBeforeWrite();
 		if($this->owner->PreSaleStartInventory==0 && $this->owner->InPreSale){
 			$this->owner->PreSaleStartInventory=$this->owner->PreSaleInventory;
 		}
 	}
 	public function onAfterWrite(){
-		parent::onAfterWrite();
 	}
 	public function IsAvailable(){
 		if($this->owner->InfiniteInventory || $this->owner->Inventory>0){

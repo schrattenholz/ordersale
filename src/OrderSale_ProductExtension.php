@@ -180,7 +180,6 @@ class OrderSale_ProductExtension extends Extension{
 			$this->getOwner()->resetSale();
 			$this->getOwner()->ResetSale=0;
 		}
-		parent::onBeforeWrite();
 	}
 	public function resetSale(){
 		// Reset der Verkaufzahlen in den Produktvarianten auf 0

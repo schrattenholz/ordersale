@@ -40,12 +40,10 @@ class OrderSale_ProductContainer extends Extension{
 				$this->getOwner()->Quantity=($totalRegisteredQuantity+$this->getOwner()->getField('Quantity'))-$this->getOwner()->Quantity;
 			}
 		}
-		parent::onBeforeWrite();
 	}
 	public function onAfterWrite(){
 		if($this->getOwner()->Product()->InPreSale && $this->getOwner()->ClientOrderID!=0){
 			//$this->getOwner()->Product()->AfterMakeOrder($this->getOwner()->ClientOrder());
 		}
-		parent::onAfterWrite();
 	}
 }

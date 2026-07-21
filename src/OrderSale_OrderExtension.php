@@ -831,14 +831,13 @@ class OrderSale_OrderExtension extends Extension {
 				$clientsQuantity=0;
 			}
 			$clientQuantities=new ArrayList();
-			foreach($clientsProductContainer as $pC){
-				$pos=new ArrayList();
-				foreach($pC->ProductOptions() as $po){
-					$po_pc=ProductOptions_ProductContainer::get()->filter(["ProductOptionID"=>$po->ID,"OrderProfileFeature_ProductContainerID"=>$pC->ID])->First();
-					$pos->push(new ArrayData(["ID"=>$po->ID,"Active"=>$po_pc->Active,"Price"=>$po_pc->Price]));
-				}
-				$pcArray=$clientQuantities->push(new ArrayData(["ProductContainerID"=>$pC->ID,"Quantity"=>$pC->Quantity,"ProductOptions"=>$pos]));
+			$pC=$clientsProductContainer;
+			$pos=new ArrayList();
+			foreach($pC->ProductOptions() as $po){
+				$po_pc=ProductOptions_ProductContainer::get()->filter(["ProductOptionID"=>$po->ID,"OrderProfileFeature_ProductContainerID"=>$pC->ID])->First();
+				$pos->push(new ArrayData(["ID"=>$po->ID,"Active"=>$po_pc->Active,"Price"=>$po_pc->Price]));
 			}
+			$clientQuantities->push(new ArrayData(["ProductContainerID"=>$pC->ID,"Quantity"=>$pC->Quantity,"ProductOptions"=>$pos]));
 		}else{
 			$clientsQuantity=0;
 			$clientQuantities=[];

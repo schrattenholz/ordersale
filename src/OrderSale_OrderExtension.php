@@ -197,7 +197,7 @@ class OrderSale_OrderExtension extends Extension {
 	}
 	public function addProduct($pd){
 		//neues Produkt anlegen
-			$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
+			$returnValues=new ArrayData(['Status'=>'error','Message'=>false,'Value'=>false]);
 			$basket=$this->getOwner()->getBasket();
 			$productContainer=OrderProfileFeature_ProductContainer::create();
 			$productContainer->ProductID=$pd['productID'];
@@ -311,7 +311,7 @@ class OrderSale_OrderExtension extends Extension {
 			}
 	}
 	public function editProduct($pd){
-		$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
+		$returnValues=new ArrayData(['Status'=>'error','Message'=>false,'Value'=>false]);
 		//return $this->getOwner()->httpError(500,'editProduct= '.$blockedQuantity);
 		//vorhandenes Produkt aktualisieren
 		
@@ -489,7 +489,7 @@ class OrderSale_OrderExtension extends Extension {
 	}
 	
 	public function saveClientOrderTitle($data){
-		$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
+		$returnValues=new ArrayData(['Status'=>'error','Message'=>false,'Value'=>false]);
 		$cO=OrderProfileFeature_ClientOrder::get()->byID($data['id']);
 		$cO->Title=$data['title'];
 		if($cO->write()){
@@ -540,7 +540,7 @@ class OrderSale_OrderExtension extends Extension {
 		
 		$pd=$this->owner->genProductdata(json_decode($data['orderedProduct'],true));
 
-		$returnValues=new ArrayList(['Status'=>'error','Message'=>false,'Value'=>false]);
+		$returnValues=new ArrayData(['Status'=>'error','Message'=>false,'Value'=>false]);
 		//Daten validieren
 		if($pd['quantity']!=0){
 			if($this->checkIfProductInBasket($pd)){

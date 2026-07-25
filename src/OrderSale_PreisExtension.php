@@ -40,10 +40,16 @@ class OrderSale_PreisExtension extends Extension{
 	];
 	public function getSoldPercentage(){
 		//Injector::inst()->get(LoggerInterface::class)->error(' CurrentInventory'.$this->owner->FreeQuantity($this->getPreisDetails())." startIn=".$this->getPreSaleStatus()->StartInventory);
-		if($this->getPreSaleStatus()->StartInventory>0){
-			return 100-($this->getPreSaleStatus()->CurrentInventory/$this->getPreSaleStatus()->StartInventory*100); 
+		$status=$this->getPreSaleStatus();
+		// FreeQuantity()'s "QuantityLeft" (which becomes CurrentInventory here) is intentionally the
+		// string "Auf Lager" for products with InfiniteInventory=true -- that's relied on elsewhere
+		// (templates display it directly, OrderSale_OrderExtension defensively floatval()s it). A
+		// percentage is meaningless for infinite stock anyway, so just skip the calculation here
+		// rather than trying to divide by/with a non-numeric value.
+		if($status && $status->StartInventory>0 && is_numeric($status->CurrentInventory)){
+			return 100-($status->CurrentInventory/$status->StartInventory*100);
 		}else{
-			
+
 			return 0;
 		}
 	}

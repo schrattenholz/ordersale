@@ -27,7 +27,7 @@
 				<h1>$Title <% if $KiloPrice >0 %><span id="kilo" data-price="$Price">$formattedNumber($KiloPrice) &euro; / kg *</span><% end_if %></h1>
 				<h6>
 				<% if $Addons %>
-				<% loop $Addons %>$Title<% if not $Last %>, <% end_if %><% end_loop %> | <% loop $Ingredients %>$Title<% if not $Last %>, <% end_if %><% end_loop%>
+				<% loop $Addons %>$Title<% if not $IsLast %>, <% end_if %><% end_loop %> | <% loop $Ingredients %>$Title<% if not $IsLast %>, <% end_if %><% end_loop%>
 				
 				</h6>
 				<% end_if %>
@@ -52,7 +52,7 @@
 							<div class="selectric-wrapper">
 								<select id="variant01"  style="width:100%;" onchange="refreshSelectedProduct('variantChange')">
 								<% loop $GroupPreise %>
-									<option value="$ID" data-price="$Price" data-quantity="$FreeQuantity" data-vac="<% if $Top.Vacuum %>1<% else %>$Vacuum<% end_if %>" <% if $Top.loadSelectedParameters.Variant01==$ID %> selected="selected"<% else_if $First %> selected="selected"<% end_if %>><% if $ShowContent %>$Content<% else %>ca. $DisplayAmount<% end_if %></option>
+									<option value="$ID" data-price="$Price" data-quantity="$FreeQuantity" data-vac="<% if $Top.Vacuum %>1<% else %>$Vacuum<% end_if %>" <% if $Top.loadSelectedParameters.Variant01==$ID %> selected="selected"<% else_if $IsFirst %> selected="selected"<% end_if %>><% if $ShowContent %>$Content<% else %>ca. $DisplayAmount<% end_if %></option>
 								<% end_loop %>
 								</select>
 							</div>

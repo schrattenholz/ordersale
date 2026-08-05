@@ -16,7 +16,7 @@
 				  </ul>
 				</nav>-->
 				<!--<h2 class="standardTitle"><span>$Title</span><span style="float:right;"><a href="$LinkProductRoot">Zur &Uuml;bersicht</a></h2>-->
-				<% if $Addons %><h3><% loop $Addons %>$Title<% if not $Last %>, <% end_if %><% end_loop %> | <% loop $Ingredients %>$Title<% if not $Last %>, <% end_if %><% end_loop%></h3><% end_if %>
+				<% if $Addons %><h3><% loop $Addons %>$Title<% if not $IsLast %>, <% end_if %><% end_loop %> | <% loop $Ingredients %>$Title<% if not $IsLast %>, <% end_if %><% end_loop%></h3><% end_if %>
 				<form id="product-config">
 					<div class="row no-gutters">
 						<div class="col-md-12">
@@ -39,7 +39,7 @@
 							<div class="selectric-wrapper">
 								<select id="variant01"  style="width:100%;" onchange="refreshSelectedProduct()">
 								<% loop $Preise %>
-									<option value="$ID" data-price="$Price" <% if $Top.loadSelectedParameters.Variant01==$ID %> selected="selected"<% else_if $First %> selected="selected"<% end_if %>><% if $ShowContent %>$Content<% else %>$DisplayAmount<% end_if %></option>
+									<option value="$ID" data-price="$Price" <% if $Top.loadSelectedParameters.Variant01==$ID %> selected="selected"<% else_if $IsFirst %> selected="selected"<% end_if %>><% if $ShowContent %>$Content<% else %>$DisplayAmount<% end_if %></option>
 								<% end_loop %>
 								</select>
 							</div>

@@ -82,7 +82,7 @@ class OrderSale_PreisExtension extends Extension{
 		}
 	}
 	public function getPreSaleStatus(){
-	//	Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
+		Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
 		if($this->owner->InPreSale){
 			return new ArrayData(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
 		}else{

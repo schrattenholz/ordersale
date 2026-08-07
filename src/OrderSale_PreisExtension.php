@@ -111,13 +111,39 @@ class OrderSale_PreisExtension extends Extension{
 		}
 		return $reservedQuantity;
 	}
-	public function PreSale_SoldAndReserved(){
-		$returnValue= new ArrayList();	
-		$productContainers=OrderProfileFeature_ProductContainer::get()->filter([
+	/**
+	 * Die Bestellpositionen, die zum *laufenden* Vorverkauf dieser Variante
+	 * gehoeren.
+	 *
+	 * Frueher wurde das ueber das Anlagedatum hergeleitet ("alles ab
+	 * PreSaleStart"). Das zaehlt zwangslaeufig auch Positionen aus anderen
+	 * Kampagnen mit, sobald deren Datum spaeter liegt -- und bricht ganz
+	 * zusammen, sobald ein Reset PreSaleStart nullt. Seit jede Position ihre
+	 * PreSaleID mitfuehrt, laesst sich exakt filtern.
+	 *
+	 * Der Datums-Rueckfall bleibt fuer Bestaende ohne Kampagnen-Datensatz.
+	 */
+	public function PreSale_Containers(){
+		$base=OrderProfileFeature_ProductContainer::get()->filter([
 			'ProductID'=>$this->owner->ProductID,
-			'PriceBlockElementID'=>$this->owner->ID,
-			'Created:GreaterThanOrEqual'=>$this->owner->PreSaleStart]
-		);
+			'PriceBlockElementID'=>$this->owner->ID
+		]);
+		$product=$this->owner->Product();
+		$preSale=($product && $product->exists()) ? PreSale::activeFor($product->ParentID) : null;
+		if($preSale){
+			return $base->filter('PreSaleID',$preSale->ID);
+		}
+		if(!$this->owner->PreSaleStart){
+			// Ohne Kampagne und ohne Startdatum gibt es nichts zu zaehlen --
+			// sonst wuerde hier die gesamte Historie zusammengerechnet.
+			return $base->filter('ID',0);
+		}
+		return $base->filter('Created:GreaterThanOrEqual',$this->owner->PreSaleStart);
+	}
+
+	public function PreSale_SoldAndReserved(){
+		$returnValue= new ArrayList();
+		$productContainers=$this->PreSale_Containers();
 		// Hole alle schon verkauften Produkte
 		$returnValue->Sold=0;
 		foreach($productContainers->filter(["ClientOrderID:GreaterThan"=>0]) as $pC){

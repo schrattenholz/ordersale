@@ -63,10 +63,124 @@ class OrderSale_PreisExtension extends Extension{
 				return "presale";
 			}else{
 				return "openpresale";
-			}			
+			}
 		}else{
 			return false;
-		}		
+		}
+	}
+
+	/**
+	 * Bis einschliesslich dieser Menge gilt der Bestand als knapp.
+	 * Entspricht der Staffelung im Badge-Template: >2 komfortabel, 1..2 knapp, 0 weg.
+	 */
+	private const LOW_STOCK_THRESHOLD = 2;
+
+	/**
+	 * Freie Menge dieser Variante -- ohne Umweg ueber FreeQuantity().
+	 *
+	 * Rechnet bewusst dasselbe wie FreeQuantity()['QuantityLeft'], vermeidet
+	 * aber dessen getBasket()-Aufruf. Der dient dort ausschliesslich dazu,
+	 * ClientsQuantity zu ermitteln (was der aktuelle Besucher selbst im Korb
+	 * hat) und geht in QuantityLeft gar nicht ein -- er zwingt die Methode
+	 * aber in einen HTTP-Request-Kontext und laesst sie im CLI/Task mit
+	 * "Too few arguments to HTTPRequest::__construct()" scheitern.
+	 *
+	 * Ohne diesen Umweg ist der Zustand ueberall abfragbar: Template, App-API,
+	 * BuildTask, Test.
+	 */
+	public function AvailableQuantity(){
+		$preis=$this->owner;
+		if($preis->InPreSale){
+			$left=(int)$preis->PreSaleStartInventory-(int)$preis->PreSale_SoldAndReserved()->Total;
+		}else{
+			$left=(int)$preis->Inventory-(int)$preis->Reserved();
+		}
+		return $left>0 ? $left : 0;
+	}
+
+	/**
+	 * Verfuegbarkeits-Zustand einer Variante -- eine Wahrheit fuer Badge,
+	 * strukturierte Daten und App/API.
+	 *
+	 * Bewusst getrennt in Zustand (hier) und Darstellung (Template): das
+	 * Badge-Markup mischte bisher Zustand, deutsche Texte und CSS-Klassen.
+	 * Nur der Zustand ist wiederverwendbar.
+	 *
+	 * State: soldout | infinite | available | low | none
+	 *        | presale | presale-open | presale-done
+	 */
+	public function AvailabilityInfo(){
+		$preis=$this->owner;
+
+		// OutOfStock haengt am Produkt, nicht an der Variante: es ist der
+		// Sammelschalter, mit dem sich ein ganzes Produkt abschalten laesst,
+		// ohne jede Variante einzeln anzufassen. Deshalb sticht es alles andere.
+		$product=$preis->Product();
+		if($product && $product->exists() && $product->OutOfStock){
+			return new ArrayData(['State'=>'soldout','Quantity'=>0,'IsOrderable'=>false]);
+		}
+
+		// Unbegrenzter Bestand -- die Menge ist hier bedeutungslos.
+		if($preis->InfiniteInventory){
+			return new ArrayData(['State'=>'infinite','Quantity'=>null,'IsOrderable'=>true]);
+		}
+
+		$left=$preis->AvailableQuantity();
+
+		$mode=$preis->getPreSaleMode(); // presale | openpresale | false
+		if($mode){
+			if($left<=0){
+				return new ArrayData(['State'=>'presale-done','Quantity'=>0,'IsOrderable'=>false]);
+			}
+			return new ArrayData([
+				'State'=>$mode=="presale" ? 'presale' : 'presale-open',
+				'Quantity'=>$left,
+				'IsOrderable'=>true
+			]);
+		}
+
+		if($left<=0){
+			return new ArrayData(['State'=>'none','Quantity'=>0,'IsOrderable'=>false]);
+		}
+		return new ArrayData([
+			'State'=>$left>self::LOW_STOCK_THRESHOLD ? 'available' : 'low',
+			'Quantity'=>$left,
+			'IsOrderable'=>true
+		]);
+	}
+
+	/**
+	 * Zustand fuer schema.org -- BEWUSST nicht aus AvailabilityInfo() abgeleitet.
+	 *
+	 * Grund: FreeQuantity() zieht Reservierungen ab, also alles, was gerade in
+	 * irgendeinem Warenkorb der letzten 11 Minuten liegt (Reserved()). Fuers
+	 * Badge im Shop ist das genau richtig. Fuer strukturierte Daten waere es
+	 * schaedlich: die Verfuegbarkeit im ausgelieferten HTML haenge davon ab,
+	 * wer zufaellig in derselben Minute etwas im Korb hat -- ein Crawler saehe
+	 * ein flackerndes Signal. Hier zaehlt deshalb der Lagerbestand ohne
+	 * Reservierungen.
+	 */
+	public function SchemaOrgAvailability(){
+		$preis=$this->owner;
+		$product=$preis->Product();
+
+		if($product && $product->exists() && $product->OutOfStock){
+			return 'https://schema.org/OutOfStock';
+		}
+		if($preis->InfiniteInventory){
+			return 'https://schema.org/InStock';
+		}
+		if($preis->InPreSale){
+			// PreOrder trifft es genauer als InStock -- die Ware existiert,
+			// ist aber noch nicht abholbereit.
+			$sold=$preis->PreSale_SoldAndReserved()->Sold;
+			return ((int)$preis->PreSaleStartInventory-(int)$sold)>0
+				? 'https://schema.org/PreOrder'
+				: 'https://schema.org/SoldOut';
+		}
+		return ((int)$preis->Inventory)>0
+			? 'https://schema.org/InStock'
+			: 'https://schema.org/OutOfStock';
 	}
 	public function CurrentInventory(){
 		return $this->getPreSaleStatus()->CurrentInventory;

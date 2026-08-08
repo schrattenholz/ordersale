@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>SolaApp</title>
+<meta name="theme-color" content="#7c8f3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SolaApp">
+<link rel="manifest" href="/pwa/manifest.json">
+<link rel="apple-touch-icon" href="/pwa/icons/apple-touch-icon.png">
+<link rel="icon" href="/pwa/icons/icon-192.png">
+<link rel="stylesheet" href="/pwa/styles.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar no-print">
+    <div>
+      <h1 id="header-title">Bestellungen</h1>
+      <div class="subtitle" id="header-subtitle">Hof Lehnmühle</div>
+    </div>
+    <button class="icon-btn" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="czi-settings"></i></button>
+  </header>
+
+  <div class="search-bar no-print" id="search-bar" hidden>
+    <span class="search-icon czi-search"></span>
+    <input type="search" id="search-input" placeholder="Kunde oder Firma suchen…" autocapitalize="off" autocorrect="off">
+  </div>
+
+  <div class="filters no-print" id="filters" hidden>
+    <button class="chip active" data-status="">Alle <span class="count" id="count-all"></span></button>
+    <button class="chip" data-status="offen">Offen <span class="count" id="count-offen"></span></button>
+    <button class="chip" data-status="inBearbeitung">In Bearbeitung <span class="count" id="count-inBearbeitung"></span></button>
+    <button class="chip" data-status="abgeschlossen">Abgeschlossen <span class="count" id="count-abgeschlossen"></span></button>
+  </div>
+
+  <main id="main">
+    <div id="settings-screen" class="settings-screen" hidden>
+      <h2>Verbindung einrichten</h2>
+      <p class="hint">Zugangsdaten zur Sola-OBS-Bestell-API. Werden nur lokal auf diesem Gerät gespeichert.</p>
+      <label for="input-base-url">API-Basis-URL</label>
+      <input id="input-base-url" type="text" placeholder="/api" autocapitalize="off" autocorrect="off">
+      <label for="input-token">API-Token</label>
+      <input id="input-token" type="password" placeholder="Token" autocapitalize="off" autocorrect="off">
+      <button class="primary" id="connect-btn">Verbinden</button>
+      <div id="settings-error" class="hint" style="color:#c22626;"></div>
+    </div>
+
+    <div id="list-screen" hidden>
+      <div id="order-list"></div>
+      <button class="load-more no-print" id="load-more-btn" hidden>Mehr laden</button>
+      <div class="empty-state" id="empty-state" hidden>Keine Bestellungen in dieser Ansicht.</div>
+    </div>
+
+    <div id="picking-screen" hidden>
+      <div class="picking-toolbar no-print">
+        <div class="picking-summary" id="picking-summary"></div>
+        <button class="print-btn" id="print-btn"><i class="czi-printer"></i> Drucken / PDF</button>
+      </div>
+      <div id="picking-print-area">
+        <div class="print-only print-header">
+          <h2>Kommissionierliste</h2>
+          <div id="picking-print-meta"></div>
+        </div>
+        <table class="picking-table">
+          <thead>
+            <tr><th>Produkt</th><th>Variante</th><th class="qty-col">Menge</th></tr>
+          </thead>
+          <tbody id="picking-table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="picking-empty" hidden>Keine Bestellungen in Bearbeitung.</div>
+    </div>
+
+    <div id="presale-screen" hidden>
+      <div class="picking-toolbar no-print">
+        <select id="presale-list-select" class="presale-select" aria-label="Warengruppe wählen"></select>
+        <button class="print-btn" id="presale-print-btn"><i class="czi-printer"></i> Drucken / PDF</button>
+      </div>
+
+      <div id="presale-campaigns"></div>
+
+      <div id="presale-print-area">
+        <div class="print-only print-header">
+          <h2>Vorverkauf — Verkaufsauswertung</h2>
+          <div id="presale-print-meta"></div>
+        </div>
+        <div class="presale-hint no-print" id="presale-hint"></div>
+        <table class="picking-table presale-table">
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th>Variante</th>
+              <th class="qty-col">Bestand</th>
+              <th class="qty-col">Verkauft</th>
+              <th class="qty-col">Quote</th>
+            </tr>
+          </thead>
+          <tbody id="presale-table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="presale-empty" hidden>Für diese Warengruppe gibt es keinen Vorverkauf.</div>
+    </div>
+
+    <div class="spinner" id="spinner"></div>
+  </main>
+
+  <nav class="bottom-nav no-print" id="bottom-nav" hidden>
+    <button class="nav-btn active" data-view="orders"><i class="czi-list"></i><span>Bestellungen</span></button>
+    <button class="nav-btn" data-view="picking"><i class="czi-package"></i><span>Kommissionierung</span></button>
+    <button class="nav-btn" data-view="presale"><svg class="nav-svg" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="11" width="3.4" height="6.5"/><rect x="8.3" y="7" width="3.4" height="10.5"/><rect x="14.1" y="2.5" width="3.4" height="15"/></svg><span>Vorverkauf</span></button>
+  </nav>
+
+</div>
+
+<div id="toast"></div>
+
+<div id="contact-modal" class="modal-overlay" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="modal-close-btn" aria-label="Schließen"><i class="czi-close"></i></button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/pwa/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+---
+Name: ordersale-zerlegeplan
+---
+# Zerlegepläne beschreiben, welche Teilstücke bei einer Tierart anfallen und in
+# welchen Portionsgrössen. Sie gehören zum Vorverkauf: "Anzahl pro Tier" wird
+# beim Übernehmen zu Preis.PreSaleInventory und damit zum Anfangsbestand.
+#
+# Der CMS-Bereich ist bewusst abgeschaltet. Nicht jeder Shop zerlegt Tiere --
+# ein Käseladen soll den Menüpunkt nicht sehen. Wer ihn braucht, schaltet ihn
+# im Projekt ein:
+#
+#   Schrattenholz\OrderSale\Zerlegeplan\ZerlegeplanAdmin:
+#     enabled: true
+Schrattenholz\OrderSale\Zerlegeplan\ZerlegeplanAdmin:
+  enabled: false
+
+# Die Warengruppe merkt sich, nach welchem Plan sie aufgebaut ist.
+Schrattenholz\Order\ProductList:
+  extensions:
+    - Schrattenholz\OrderSale\Zerlegeplan\ProductListZerlegeplanExtension
+
+# Zur Erstbefüllung lässt sich ein Plan als YAML hochladen. Silverstripe
+# erlaubt diese Endungen von Haus aus nicht.
+SilverStripe\Assets\File:
+  allowed_extensions:
+    - yml
+    - yaml
+
+---
+Name: ordersale-api
+---
+# Schnittstellen und Oberfläche der Bestell-App.
+#
+# Die App liegt im Modul, bleibt aber unter /pwa/ erreichbar: der
+# Geltungsbereich eines Service Workers ist sein eigener Pfad, und eine
+# installierte App merkt sich ihre Startadresse.
+SilverStripe\Control\Director:
+  rules:
+    'api/orders': 'Schrattenholz\OrderSale\Api\OrdersApiController'
+    'api/picking-list': 'Schrattenholz\OrderSale\Api\PickingListApiController'
+    'api/presales': 'Schrattenholz\OrderSale\Api\PreSalesApiController'
+    'pwa': 'Schrattenholz\OrderSale\Api\PreSaleAppController'

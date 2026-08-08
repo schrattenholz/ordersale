@@ -1,0 +1,16 @@
+{
+  "name": "SolaApp",
+  "short_name": "SolaApp",
+  "description": "Bestellstatus-Verwaltung für Hof Lehnmühle",
+  "start_url": "/pwa/",
+  "scope": "/pwa/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#f3f5f1",
+  "theme_color": "#7c8f3a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

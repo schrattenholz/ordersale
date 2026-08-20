@@ -6,6 +6,8 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer;
+use Schrattenholz\OrderProfileFeature\OrderProfileFeature_Basket;
+use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ClientContainer;
 
 /**
  * Wie lange Ware im Warenkorb reserviert bleibt -- und was daraus folgt.
@@ -92,5 +94,50 @@ class Reservierung
             $summe += (int)$position->Quantity;
         }
         return $summe;
+    }
+
+    /**
+     * Entfernt aufgegebene Warenkoerbe samt ihrer Positionen.
+     *
+     * Reines Aufraeumen: welche Ware frei ist, entscheidet die Frist in der
+     * Abfrage (siehe nurGueltige()). Faellt dieser Lauf aus, bleiben nur
+     * Datensaetze liegen -- gesperrt wird dadurch nichts.
+     *
+     * @return array{warenkoerbe:int, positionen:int, verwaiste:int}
+     */
+    public static function aufraeumen(): array
+    {
+        $grenze = static::grenze();
+        $bericht = ['warenkoerbe' => 0, 'positionen' => 0, 'verwaiste' => 0];
+
+        foreach (OrderProfileFeature_Basket::get()->filter('LastEdited:LessThan', $grenze) as $korb) {
+            foreach ($korb->ProductContainers() as $position) {
+                $position->delete();
+                $bericht['positionen']++;
+            }
+            if ($korb->ClientContainerID > 0) {
+                $kunde = OrderProfileFeature_ClientContainer::get()->byID($korb->ClientContainerID);
+                if ($kunde) {
+                    $kunde->delete();
+                }
+            }
+            $korb->delete();
+            $bericht['warenkoerbe']++;
+        }
+
+        // Positionen, deren Warenkorb es nicht mehr gibt und die zu keiner
+        // Bestellung gehoeren -- sonst blieben sie unauffindbar liegen.
+        $verwaiste = OrderProfileFeature_ProductContainer::get()->filter([
+            'LastEdited:LessThan' => $grenze,
+            'ClientOrderID' => 0,
+        ]);
+        foreach ($verwaiste as $position) {
+            if (!OrderProfileFeature_Basket::get()->byID($position->BasketID)) {
+                $position->delete();
+                $bericht['verwaiste']++;
+            }
+        }
+
+        return $bericht;
     }
 }

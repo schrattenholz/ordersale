@@ -20,7 +20,8 @@ use SilverStripe\PolyExecution\PolyOutput;
  */
 class ImportZerlegeplanTask extends BuildTask
 {
-    private static $segment = 'ImportZerlegeplanTask';
+    protected static string $commandName = 'zerlegeplan-anwenden';
+    protected static string $description = 'Zerlegeplan auf eine Warengruppe anwenden';
     protected string $title = 'Zerlegeplan auf eine Warengruppe anwenden';
 
     public function getOptions(): array

@@ -204,26 +204,11 @@ class OrderSale_PreisExtension extends Extension{
 		}
 	}
 	public function Reserved(){
-		
-		//Produkte können 11 Minuten reserviert werden, Ältere in ProductContainer befindliche Produkte sind verkauft und nicht reserviert 
-		$now = date("Y-m-d H:i:s");
-		$timestamp = "2016-04-20 00:37:15";
-		$start_date = date($now);
-		$expires = strtotime('-11 minute', strtotime($now));
-		$date_diff=($expires-strtotime($now)) / 86400;
-		$product=$this->owner;
-		
-		
-		$reservedQuantity=0;
-		$pCs=OrderProfileFeature_ProductContainer::get()->filter([
-			'ProductID'=>$this->owner->ProductID,
-			'PriceBlockElementID'=>$this->owner->ID,
-			'Basket.LastEdited:GreaterThanOrEqual'=>$expires
-		]);
-		foreach($pCs as $pC){	
-			$reservedQuantity+=$pC->Quantity;	
-		}
-		return $reservedQuantity;
+		// Ware gilt nur so lange als reserviert, wie ihr Warenkorb lebt --
+		// die Frist steht in Reservierung::dauer().
+		return Reservierung::menge(
+			Reservierung::fuer((int)$this->owner->ProductID, (int)$this->owner->ID)
+		);
 	}
 	/**
 	 * Die Bestellpositionen, die zum *laufenden* Vorverkauf dieser Variante
@@ -266,7 +251,9 @@ class OrderSale_PreisExtension extends Extension{
 		}
 		// Hole alle reservierten Produkte
 		$returnValue->Reserved=0;		
-		foreach($productContainers->filter(["BasketID:GreaterThan"=>0]) as $pC){
+		// Nur lebende Warenkoerbe zaehlen -- ein abgebrochener Einkauf darf die
+		// Ware nicht dauerhaft sperren.
+		foreach(Reservierung::nurGueltige($productContainers) as $pC){
 				//Injector::inst()->get(LoggerInterface::class)->error('verkauftes Produkt > PreSaleStart= pBe->ID'.$pC->PriceBlockElementID." PreSaleStrt=".$this->owner->PreSaleStart);
 				$returnValue->Reserved+=$pC->Quantity;			
 		}
@@ -328,11 +315,9 @@ class OrderSale_PreisExtension extends Extension{
 		if($this->owner->InfiniteInventory){
 			$fq=10000000;
 		}else{
-			$pCs=$this->ReservedProductContainers();
-			$totalQuantity=0;
-			foreach($pCs as $pC){
-				$totalQuantity=$totalQuantity+$pC->Inventory;
-			}
+			// Quantity, nicht Inventory: eine Bestellposition hat keinen
+			// Warenbestand, sondern eine bestellte Menge.
+			$totalQuantity=Reservierung::menge($this->ReservedProductContainers());
 			$fq=(($this->getOwner()->Inventory)-($totalQuantity));
 			if($fq<0){
 				$fq=0;
@@ -341,43 +326,11 @@ class OrderSale_PreisExtension extends Extension{
 		return $fq;
 	}
 	public function ReservedProductContainers(){
-		$now = date("Y-m-d H:i:s");
-		$timestamp = "2016-04-20 00:37:15";
-		$start_date = date($now);
-		$expires = strtotime('-11 minute', strtotime($now));
-		$date_diff=($expires-strtotime($now)) / 86400;
-
-		$product=$this->owner;
-
-		if(!$product->InfiniteInventory){
-			//Wenn das Produkt einen Warenbestand benutzt, muss die Anzahl der Reservierungen ermittelt werden 
-			
-			$reservedQuantity=0;
-			$tmpPc=new ArrayList();
-			foreach(Basket::get()->filter(['LastEdited:GreaterThanOrEqual'=>$expires]) as $basket){
-				if($product->ClassName=="Schrattenholz\\Order\\Preis"){
-					//Varianten Produkt
-					$pCs=$basket->ProductContainers()->filter([
-						'ProductID'=>$pd['productID'],
-						'PriceBlockElementID'=>$pd['variant01']
-					]);
-				}else{
-					//Normles Produkt
-					$pCs=$basket->ProductContainers()->filter([
-						'ProductID'=>$pd['productID']
-					]);
-				}
-				foreach($pCs as $pc){
-					$reservedQuantity+=$pc->Quantity;
-					$tmpPc->push($pc);
-				}
-			}
-			$productContainer=$tmpPc;
-			
-		}else{
-			$productContainer=false;
-		}
-		return $productContainer;
+		// Die gueltigen Reservierungen dieser Variante. Frueher stand hier eine
+		// Schleife ueber alle Warenkoerbe, die auf $pd zugriff -- eine Variable,
+		// die es in dieser Methode nie gab. Sie filterte damit auf ProductID
+		// NULL und lieferte immer eine leere Liste.
+		return Reservierung::fuer((int)$this->owner->ProductID, (int)$this->owner->ID);
 	}
 	public function ActivePreSale(){
 		$heute = strtotime(date("Y-m-d"));

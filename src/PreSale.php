@@ -123,10 +123,11 @@ class PreSale extends DataObject
      */
     public function ReservedContainers()
     {
-        return OrderProfileFeature_ProductContainer::get()->filter([
-            'PreSaleID' => $this->ID,
-            'BasketID:GreaterThan' => 0,
-        ]);
+        // Nur lebende Warenkoerbe -- ein abgebrochener Einkauf darf die Ware
+        // nicht dauerhaft als reserviert ausweisen.
+        return Reservierung::nurGueltige(
+            OrderProfileFeature_ProductContainer::get()->filter('PreSaleID', $this->ID)
+        );
     }
 
     public function SoldQuantity()

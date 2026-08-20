@@ -25,7 +25,8 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class ExportZerlegeplanTask extends BuildTask
 {
-    private static $segment = 'ExportZerlegeplanTask';
+    protected static string $commandName = 'zerlegeplan-export';
+    protected static string $description = 'Warengruppe als Zerlegeplan-Datei herausschreiben';
 
     protected string $title = 'Warengruppe als Zerlegeplan exportieren';
 
@@ -35,13 +36,13 @@ class ExportZerlegeplanTask extends BuildTask
             new InputOption('list', null, InputOption::VALUE_REQUIRED,
                 'ID der Warengruppe; ohne Angabe werden alle mit Produkten ausgegeben'),
             new InputOption('dir', null, InputOption::VALUE_REQUIRED,
-                'Zielverzeichnis (Vorgabe: zerlegeplaene/ im Projekt)'),
+                'Zielverzeichnis (Vorgabe: zerlegeplaene/ neben dem Projekt)'),
         ];
     }
 
     protected function execute(InputInterface $input, PolyOutput $output): int
     {
-        $dir = $input->getOption('dir') ?: (BASE_PATH . '/zerlegeplaene');
+        $dir = $input->getOption('dir') ?: (dirname(BASE_PATH) . '/zerlegeplaene');
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             $output->writeln('<error>Verzeichnis nicht anlegbar: ' . $dir . '</error>');
             return 1;

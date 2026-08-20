@@ -382,45 +382,20 @@ class OrderSale_OrderExtension extends Extension {
 	}
 	
 	public function ReservedProductContainers($pd){
-		//Produkte, die gerade in einem Warenkorb liegen, aber noch nicht bestellt worden sind.
-		//Sie können von anderen Bestellern nicht in den Warenkorb gelegt werden, da es sonst zur Überbuchung käme
-		$now = date("Y-m-d H:i:s");
-		$timestamp = "2016-04-20 00:37:15";
-		$start_date = date($now);
-		$expires = strtotime('-11 minute', strtotime($now));
-		$date_diff=($expires-strtotime($now)) / 86400;
+		// Positionen, die gerade in einem Warenkorb liegen und noch nicht
+		// bestellt sind. Sie sind fuer andere Besteller gesperrt, sonst kaeme
+		// es zur Ueberbuchung.
+		//
+		// Frueher lief hier eine Schleife ueber *alle* Warenkoerbe, ohne Blick
+		// auf deren Alter -- ein abgebrochener Einkauf sperrte die Ware damit
+		// dauerhaft. Die Frist steht jetzt an einer Stelle, in
+		// Reservierung::dauer().
 		$productDetails=$this->owner->getProductDetails($pd);
-
-		if(!$productDetails->InfiniteInventory){
-			//Wenn das Produkt einen Warenbestand benutzt, muss die Anzahl der Reservierungen ermittelt werden 
-			
-			$reservedQuantity=0;
-			$tmpPc=new ArrayList();
-			foreach(OrderProfileFeature_Basket::get() as $basket){
-						
-				if($productDetails->ClassName=="Schrattenholz\\Order\\Preis"){
-					//Varianten Produkt
-					$pCs=$basket->ProductContainers()->filter([
-						'ProductID'=>$pd['productID'],
-						'PriceBlockElementID'=>$pd['variant01']
-					]);
-				}else{
-					//Normles Produkt
-					$pCs=$basket->ProductContainers()->filter([
-						'ProductID'=>$pd['productID']
-					]);
-				}
-				foreach($pCs as $pc){
-					$reservedQuantity+=$pc->Quantity;
-					$tmpPc->push($pc);
-				}
-			}
-			$productContainer=$tmpPc;
-			
-		}else{
-			$productContainer=false;
+		if($productDetails->InfiniteInventory){
+			return false;
 		}
-		return $productContainer;
+		$varianteID=isset($pd['variant01']) ? (int)$pd['variant01'] : null;
+		return Reservierung::fuer((int)$pd['productID'], $varianteID);
 	}
 	public function CalcReservedQuantity($pd){
 		$blockedQuantity=0;

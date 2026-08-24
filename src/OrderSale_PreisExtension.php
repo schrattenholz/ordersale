@@ -91,7 +91,7 @@ class OrderSale_PreisExtension extends Extension{
 	public function AvailableQuantity(){
 		$preis=$this->owner;
 		if($preis->InPreSale){
-			$left=(int)$preis->PreSaleStartInventory-(int)$preis->PreSale_SoldAndReserved()->Total;
+			$left=(int)$preis->PreSaleStart()-(int)$preis->PreSale_SoldAndReserved()->Total;
 		}else{
 			$left=(int)$preis->Inventory-(int)$preis->Reserved();
 		}
@@ -174,7 +174,7 @@ class OrderSale_PreisExtension extends Extension{
 			// PreOrder trifft es genauer als InStock -- die Ware existiert,
 			// ist aber noch nicht abholbereit.
 			$sold=$preis->PreSale_SoldAndReserved()->Sold;
-			return ((int)$preis->PreSaleStartInventory-(int)$sold)>0
+			return ((int)$preis->PreSaleStart()-(int)$sold)>0
 				? 'https://schema.org/PreOrder'
 				: 'https://schema.org/SoldOut';
 		}
@@ -189,7 +189,7 @@ class OrderSale_PreisExtension extends Extension{
 	public function SoldRatioInventory(){
 
 		if($this->owner->InPreSale){
-			return $this->PreSale_SoldAndReserved()->Sold."(+".$this->PreSale_SoldAndReserved()->Reserved.")"." / ".$this->owner->PreSaleStartInventory;
+			return $this->PreSale_SoldAndReserved()->Sold."(+".$this->PreSale_SoldAndReserved()->Reserved.")"." / ".$this->PreSaleStart();
 		}else{
 			
 			
@@ -198,10 +198,35 @@ class OrderSale_PreisExtension extends Extension{
 	public function getPreSaleStatus(){
 		Injector::inst()->get(LoggerInterface::class)->error(" getPreSaleStatus productID".$this->getPreisDetails()['productID']." variant01=".$this->getPreisDetails()['variant01']);
 		if($this->owner->InPreSale){
-			return new ArrayData(["StartInventory"=>$this->owner->PreSaleStartInventory,"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
+			return new ArrayData(["StartInventory"=>$this->PreSaleStart(),"CurrentInventory"=>$this->owner->FreeQuantity($this->getPreisDetails())['QuantityLeft']]);	 
 		}else{
 			return false;
 		}
+	}
+	/**
+	 * Die Teilnahme dieser Variante an der laufenden Kampagne, oder null.
+	 */
+	public function PreSaleItem(){
+		$produkt=$this->owner->Product();
+		if(!$produkt || !$produkt->exists()){
+			return null;
+		}
+		$preSale=PreSale::activeFor($produkt->ParentID);
+		return $preSale ? $preSale->itemFuer($this->owner) : null;
+	}
+	/**
+	 * Anfangsbestand dieser Variante im laufenden Vorverkauf.
+	 *
+	 * Massgeblich ist die Kampagne (PreSale_Item). Das gleichnamige Feld an der
+	 * Variante ist nur noch ein abgeleiteter Zwischenwert und dient als
+	 * Rueckfall fuer Bestaende von vor der Umstellung.
+	 */
+	public function PreSaleStart(){
+		$item=$this->PreSaleItem();
+		if($item){
+			return (int)$item->StartInventory;
+		}
+		return (int)$this->owner->PreSaleStartInventory;
 	}
 	public function Reserved(){
 		// Ware gilt nur so lange als reserviert, wie ihr Warenkorb lebt --

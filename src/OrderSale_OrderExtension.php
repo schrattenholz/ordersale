@@ -792,7 +792,8 @@ class OrderSale_OrderExtension extends Extension {
 			// Wen es ein Abverkauf ist, hole die Verkaufszahlen		
 			$soldAndReserved=$productDetails->PreSale_SoldAndReserved();
 			$reservedQuantity=$soldAndReserved->Reserved;
-			$startInventory=$productDetails->PreSaleStartInventory;
+			// Massgeblich ist die Kampagne, nicht das abgeleitete Feld an der Variante.
+			$startInventory=$productDetails->PreSaleStart();
 			$quantityleft=$startInventory-$soldAndReserved->Total;
 		}else{
 			$startInventory=$productDetails->Inventory;

@@ -196,9 +196,9 @@ class OrderSale_ProductExtension extends Extension{
 			$startInventory=0;
 			$inventory=0;
 			foreach ($this->Preise()->Filter('InPreSale','1') as $pBe){
-				$startInventory+=$pBe->PreSaleStartInventory;
+				$startInventory+=$pBe->PreSaleStart();
 				$inventory+=$pBe->Inventory;
-				$priceBlockElements->push(new ArrayData(array("PriceBlockElementID"=>$pBe->ID,"ProductID"=>$this->owner->ID,"PreSaleStartInventory"=>$pBe->PreSaleStartInventory,"Inventory"=>$pBe->Inventory)));
+				$priceBlockElements->push(new ArrayData(array("PriceBlockElementID"=>$pBe->ID,"ProductID"=>$this->owner->ID,"PreSaleStartInventory"=>$pBe->PreSaleStart(),"Inventory"=>$pBe->Inventory)));
 				
 			}
 			return new ArrayData(array("ProductID"=>$this->owner->ID,"PreSaleStartInventory"=>$startInventory,"Inventory"=>$inventory,"PriceBlockElements"=>$priceBlockElements));

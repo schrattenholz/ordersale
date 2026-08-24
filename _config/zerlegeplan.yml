@@ -40,3 +40,19 @@ SilverStripe\Control\Director:
     'api/picking-list': 'Schrattenholz\OrderSale\Api\PickingListApiController'
     'api/presales': 'Schrattenholz\OrderSale\Api\PreSalesApiController'
     'pwa': 'Schrattenholz\OrderSale\Api\PreSaleAppController'
+
+---
+Name: ordersale-vorverkauf
+---
+# Die Warengruppe kennt ihre laufende Kampagne und legt sie beim Start an.
+Schrattenholz\Order\ProductList:
+  extensions:
+    - Schrattenholz\OrderSale\OrderSale_ProductListExtension
+
+# Der CMS-Bereich fuer Kampagnen ist voreingestellt aus -- nicht jeder Shop
+# verkauft im Voraus. Einschalten im Projekt:
+#
+#   Schrattenholz\OrderSale\VorverkaufAdmin:
+#     enabled: true
+Schrattenholz\OrderSale\VorverkaufAdmin:
+  enabled: false

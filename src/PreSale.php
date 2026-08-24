@@ -4,13 +4,23 @@ namespace Schrattenholz\OrderSale;
 
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\NumericField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\TreeDropdownField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldButtonRow;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
+use Symbiote\GridFieldExtensions\GridFieldTitleHeader;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\CheckboxField;
-use SilverStripe\Forms\ReadonlyField;
 use Schrattenholz\Order\ProductList;
 use Schrattenholz\Order\Preis;
+use SilverStripe\CMS\Model\SiteTree;
 use Schrattenholz\OrderProfileFeature\OrderProfileFeature_ProductContainer;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\ArrayData;
@@ -49,8 +59,13 @@ class PreSale extends DataObject
     ];
 
     private static $has_many = [
+        'Items' => PreSale_Item::class,
         'ProductContainers' => OrderProfileFeature_ProductContainer::class . '.PreSale',
     ];
+
+    // Die Teilnehmer gehoeren zur Kampagne. Die Bestellpositionen nicht -- sie
+    // gehoeren zur Bestellung und muessen eine geloeschte Kampagne ueberleben.
+    private static $cascade_deletes = ['Items'];
 
     private static $summary_fields = [
         'Title' => 'Bezeichnung',
@@ -82,14 +97,64 @@ class PreSale extends DataObject
             singleton(PreSale::class)->dbObject('PreSaleEndPercentage')->enumValues()
         ));
         $fields->addFieldToTab('Root.Main', new CheckboxField('Active', 'Aktiv'));
+        $fields->removeByName(['ProductListID', 'Items']);
+        $fields->addFieldToTab('Root.Main',
+            TreeDropdownField::create('ProductListID', 'Warengruppe', ProductList::class)
+                ->setDescription('Die Warengruppe im Verkauf, deren Teile vorverkauft werden.'),
+            'PreSaleStart');
+
         if ($this->isInDB()) {
-            $fields->addFieldToTab('Root.Main', ReadonlyField::create(
-                'SoldSummary',
-                'Bisher verkauft',
-                $this->SoldQuantity() . ' Stück in ' . $this->OrderCount() . ' Bestellungen'
-            ));
+            $fields->addFieldToTab('Root.Main',
+                LiteralField::create('Zwischenstand', $this->zwischenstandHtml()));
+            $fields->addFieldToTab('Root.Main',
+                GridField::create('Items', 'Teilstücke', $this->Items(), $this->itemConfig()));
         }
         return $fields;
+    }
+
+    /**
+     * Die Teilstuecke der Kampagne: Anfangsbestand aenderbar, der Rest zum
+     * Ansehen. Verkauft und reserviert werden gerechnet, nicht gespeichert.
+     */
+    private function itemConfig(): GridFieldConfig
+    {
+        $config = GridFieldConfig::create()
+            ->addComponent(new GridFieldButtonRow('before'))
+            ->addComponent(new GridFieldTitleHeader())
+            ->addComponent($spalten = new GridFieldEditableColumns())
+            ->addComponent(new GridFieldDeleteAction());
+
+        $spalten->setDisplayFields([
+            'Bezeichnung' => ['title' => 'Teilstück', 'field' => ReadonlyField::class],
+            'StartInventory' => [
+                'title' => 'Anfang',
+                'callback' => fn() => NumericField::create('StartInventory')->setAttribute('size', 4),
+            ],
+            'Verkauft' => ['title' => 'verkauft', 'field' => ReadonlyField::class],
+            'Reserviert' => ['title' => 'reserviert', 'field' => ReadonlyField::class],
+            'Uebrig' => ['title' => 'Rest', 'field' => ReadonlyField::class],
+            'Anteil' => ['title' => 'Anteil', 'field' => ReadonlyField::class],
+        ]);
+
+        return $config;
+    }
+
+    /** Die Kopfzahlen der Kampagne, ueber der Teilstueck-Tabelle. */
+    private function zwischenstandHtml(): string
+    {
+        $kachel = function ($wert, $text) {
+            return '<div style="min-width:130px"><div style="font-size:20px">'
+                . $wert . '</div><div class="help">' . $text . '</div></div>';
+        };
+
+        return '<div class="form__field-holder"><div style="display:flex;gap:24px;flex-wrap:wrap">'
+            . $kachel($this->StartInventory(), 'Anfangsbestand')
+            . $kachel($this->SoldQuantity(), 'verkauft in ' . $this->OrderCount() . ' Bestellungen')
+            . $kachel($this->ReservedQuantity(), 'reserviert')
+            . $kachel($this->SoldPercentageOfStart() . ' %',
+                'Schwelle ' . (int)$this->PreSaleEndPercentage . ' %'
+                . ($this->EndThresholdReached() ? ' — erreicht' : ''))
+            . '</div></div>';
     }
 
     /**
@@ -163,6 +228,15 @@ class PreSale extends DataObject
     public function StartInventory()
     {
         $sum = 0;
+        foreach ($this->Items() as $item) {
+            $sum += (int)$item->StartInventory;
+        }
+        if ($sum > 0 || $this->Items()->count()) {
+            return $sum;
+        }
+
+        // Rueckfall fuer Kampagnen, die noch keine Teilnehmer haben --
+        // Bestaende von vor der Umstellung.
         foreach ($this->Variants() as $preis) {
             $sum += (int)$preis->PreSaleStartInventory;
         }
@@ -170,21 +244,78 @@ class PreSale extends DataObject
     }
 
     /**
+     * Die Teilnahme einer Variante an dieser Kampagne, oder null.
+     */
+    public function itemFuer($preis): ?PreSale_Item
+    {
+        $id = is_object($preis) ? (int)$preis->ID : (int)$preis;
+        if (!$id || !$this->isInDB()) {
+            return null;
+        }
+        return PreSale_Item::get()->filter([
+            'PreSaleID' => $this->ID,
+            'PreisID' => $id,
+        ])->first();
+    }
+
+    /**
+     * Legt die Teilnehmer dieser Kampagne an -- eine Zeile je Variante der
+     * Warengruppe, mit dem Anfangsbestand, der beim Start gilt.
+     *
+     * Vom Vorverkauf ausgenommene Varianten (Preis.NotInPresale) bleiben
+     * aussen vor: sie stehen nicht im Zerlegeplan und nehmen nicht teil.
+     *
+     * Vorhandene Zeilen werden nicht angetastet -- ein bereits laufender
+     * Vorverkauf soll seinen Anfangsbestand behalten.
+     *
+     * @return int Zahl der neu angelegten Teilnehmer
+     */
+    public function itemsAnlegen(): int
+    {
+        if (!$this->isInDB()) {
+            return 0;
+        }
+        $neu = 0;
+        foreach ($this->Variants() as $preis) {
+            if ($preis->NotInPresale) {
+                continue;
+            }
+            if ($this->itemFuer($preis)) {
+                continue;
+            }
+            $item = PreSale_Item::create();
+            $item->PreSaleID = $this->ID;
+            $item->PreisID = $preis->ID;
+            // Der Anfangsbestand kommt aus dem Zerlegeplan: die Anzahl, die bei
+            // einem Tier ueblicherweise anfaellt. Ein noch stehender Wert am
+            // Preis stammt womoeglich vom vorigen Vorverkauf und taugt nicht.
+            $item->StartInventory = (int)$preis->PreSaleInventory;
+            $item->write();
+            $neu++;
+        }
+        return $neu;
+    }
+
+    /**
      * Alle Preis-Varianten, die zur Warengruppe dieser Kampagne gehoeren.
      */
     public function Variants()
     {
-        $list = ArrayList::create();
         $productList = $this->ProductList();
         if (!$productList || !$productList->exists()) {
-            return $list;
+            return Preis::get()->filter('ID', 0);
         }
-        foreach ($productList->Children() as $product) {
-            foreach (Preis::get()->filter('ProductID', $product->ID) as $preis) {
-                $list->push($preis);
-            }
+
+        // Bewusst ueber SiteTree statt ueber Children(): Children() filtert
+        // nach canView(), und ohne angemeldeten Benutzer -- in Tasks, in der
+        // API, im Cron -- faellt damit jedes Produkt heraus. Die Kampagne
+        // haette dann einen Anfangsbestand von 0 und ihre Endschwelle waere
+        // sofort erreicht.
+        $produktIDs = SiteTree::get()->filter('ParentID', $productList->ID)->column('ID');
+        if (!$produktIDs) {
+            return Preis::get()->filter('ID', 0);
         }
-        return $list;
+        return Preis::get()->filter('ProductID', $produktIDs);
     }
 
     /**

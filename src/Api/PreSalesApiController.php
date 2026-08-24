@@ -219,7 +219,7 @@ class PreSalesApiController extends Controller
                 $sold = $soldByVariant[$preis->ID]['qty'] ?? 0;
                 $orders = isset($soldByVariant[$preis->ID])
                     ? count($soldByVariant[$preis->ID]['orders']) : 0;
-                $start = (int)$preis->PreSaleStartInventory;
+                $start = (int)$preis->PreSaleStart();
                 $reference = $start * $campaignCount;
                 $rows[] = [
                     'variantId' => (int)$preis->ID,

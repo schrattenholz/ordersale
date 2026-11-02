@@ -41,6 +41,17 @@ SilverStripe\Control\Director:
     'api/presales': 'Schrattenholz\OrderSale\Api\PreSalesApiController'
     'pwa': 'Schrattenholz\OrderSale\Api\PreSaleAppController'
 
+# Startadresse und Geltungsbereich der App sind /pwa/. Silverstripe leitet
+# sonst auf /pwa um; eine umgeleitete Antwort darf der Service Worker einem
+# Seitenaufruf nicht geben, und die installierte App startet mit ERR_FAILED.
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Middleware\CanonicalURLMiddleware:
+    properties:
+      EnforceTrailingSlashConfigIgnorePaths:
+        - 'admin/'
+        - 'dev/'
+        - 'pwa/'
+
 ---
 Name: ordersale-vorverkauf
 ---

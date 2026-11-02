@@ -1,4 +1,4 @@
-const CACHE = "sola-bestellungen-v13";
+const CACHE = "sola-bestellungen-v14";
 const SHELL = ["/pwa/", "/pwa/index.html", "/pwa/styles.css", "/pwa/app.js", "/pwa/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -21,12 +21,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Eine umgeleitete Antwort darf einen Seitenaufruf nicht beantworten: der
+  // Browser bricht sonst mit ERR_FAILED ab.
   event.respondWith(
     caches.match(event.request).then((cached) => {
+      if (cached && !cached.redirected) {
+        return cached;
+      }
       return (
-        cached ||
         fetch(event.request).then((response) => {
-          if (response.ok && event.request.method === "GET") {
+          if (response.ok && !response.redirected && event.request.method === "GET") {
             const copy = response.clone();
             caches.open(CACHE).then((cache) => cache.put(event.request, copy));
           }

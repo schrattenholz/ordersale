@@ -842,11 +842,37 @@ class OrderSale_OrderExtension extends Extension {
 		}
 	}
 	public	function makeOrder(){
+		// Shop-Aktion: Aufruf per URL, daher keine Parameter; Verhalten wie bisher
+		$this->bestellungAbschliessen();
+	}
+	/**
+	 * Macht aus dem aktuellen Warenkorb eine Bestellung.
+	 *
+	 * Ohne Optionen verhaelt es sich wie der Shop. Die Bestell-App setzt:
+	 *  quelle          Herkunft (ClientOrder.Quelle), Vorgabe 'Shop'
+	 *  erfasstVon      Geraet oder Name der erfassenden Person
+	 *  mailAnKunde     false unterdrueckt die Bestaetigung an den Kunden
+	 *  mailAnHof       false unterdrueckt die Benachrichtigung an den Hof
+	 *  bestandPruefen  true prueft vorher erneut; reicht eine Position nicht,
+	 *                  entsteht keine Bestellung
+	 *
+	 * Rueckgabe: ['Bestellung' => ClientOrder|null, 'Fehlmengen' => siehe bestandsLuecken()]
+	 */
+	public function bestellungAbschliessen(array $optionen=[]){
 		$basket= $this->getOwner()->getBasket();
-		$order=OrderProfileFeature_ClientOrder::get()->filter('ClientContainerID',$basket->ClientContainerID);
+		if(!empty($optionen['bestandPruefen'])){
+			$fehlmengen=$this->bestandsLuecken($basket);
+			if($fehlmengen){
+				return ['Bestellung'=>null,'Fehlmengen'=>$fehlmengen];
+			}
+		}
 
 			$order=OrderProfileFeature_ClientOrder::create();
 			$order->ClientContainerID=$basket->ClientContainerID;
+			$order->Quelle=$optionen['quelle'] ?? 'Shop';
+			if(!empty($optionen['erfasstVon'])){
+				$order->ErfasstVon=$optionen['erfasstVon'];
+			}
 
 		$checkoutAddress=$this->getOwner()->getCheckoutAddress();
 		$vars=new ArrayData(array("Basket"=>$basket,"Order"=>$order));
@@ -880,7 +906,10 @@ class OrderSale_OrderExtension extends Extension {
 		->setFrom(OrderConfig::get()->First()->OrderEmail)
 		->setTo($checkoutAddress->Email)
 		->setSubject("Bestellbestätigung | ".$order->ID);
-		$emailToClient->send();
+		// Einmalkunden aus der App haben nicht immer eine Adresse
+		if(($optionen['mailAnKunde'] ?? true) && $checkoutAddress->Email){
+			$emailToClient->send();
+		}
 		$emailToSeller = Email::create()
 		->setHTMLTemplate('Schrattenholz\\OrderProfileFeature\\Layout\\Confirmation') 
 		->setData([
@@ -899,11 +928,45 @@ class OrderSale_OrderExtension extends Extension {
 		}
 		//$order->ProductContainers()->write();
 		$this->AfterMakeOrder($order);
-		
-		if($emailToSeller->send()){
-			//$this->getOwner()->ClearBasket();
-			
+
+		if($optionen['mailAnHof'] ?? true){
+			$emailToSeller->send();
 		}
+		return ['Bestellung'=>$order,'Fehlmengen'=>[]];
+	}
+	/**
+	 * Positionen des Warenkorbs, fuer die der Bestand jetzt nicht mehr reicht.
+	 *
+	 * Rechnet ohne QuantityCheck(): der zieht die eigene Position auch dann ab,
+	 * wenn die eigene Reservierung schon abgelaufen ist -- genau der Fall, wenn
+	 * in der App zwischen erster Position und Abschluss mehr als die Frist liegt.
+	 * Hier zaehlen nur die gueltigen Reservierungen anderer Warenkoerbe.
+	 */
+	public function bestandsLuecken($basket){
+		$luecken=[];
+		$schonVerplant=[];
+		foreach($basket->ProductContainers() as $pc){
+			$bestand=$this->owner->getProductDetailsWrapper($pc->ProductID,$pc->PriceBlockElementID);
+			if(!$bestand || $bestand->InfiniteInventory){
+				continue;
+			}
+			$variante=$pc->PriceBlockElementID ? (int)$pc->PriceBlockElementID : null;
+			$schluessel=$pc->ProductID.'-'.$variante;
+			$beiAnderen=Reservierung::menge(Reservierung::fuer((int)$pc->ProductID,$variante)->exclude('BasketID',$basket->ID));
+			$frei=intval($bestand->Inventory)-$beiAnderen-($schonVerplant[$schluessel] ?? 0);
+			if(intval($pc->Quantity)>$frei){
+				$titel=trim($pc->Product()->Title.' '.($variante ? $pc->PriceBlockElement()->Title : ''));
+				$luecken[]=[
+					'PositionID'=>$pc->ID,
+					'Titel'=>$titel,
+					'Bestellt'=>intval($pc->Quantity),
+					'Verfuegbar'=>max(0,$frei),
+					'Meldung'=>$titel.': bestellt '.intval($pc->Quantity).', verfügbar '.max(0,$frei)
+				];
+			}
+			$schonVerplant[$schluessel]=($schonVerplant[$schluessel] ?? 0)+intval($pc->Quantity);
+		}
+		return $luecken;
 	}
 	
 	/*$productContainer=OrderProfileFeature_ProductContainer::get()->filter(

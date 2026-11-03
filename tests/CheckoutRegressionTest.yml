@@ -1,0 +1,73 @@
+SilverStripe\Security\Group:
+  privat:
+    Title: Privatkunden
+    Code: privatkunden
+  wieder:
+    Title: Wiederverkäufer
+    Code: wiederverkaeufer
+
+Schrattenholz\Order\OrderConfig:
+  shop:
+    Title: Testhof
+    OrderEmail: order@testhof.invalid
+    InfoEmail: hallo@testhof.invalid
+
+Schrattenholz\OrderProfileFeature\OrderCustomerGroup:
+  privat:
+    Title: Privatkunde
+    IsDefault: 1
+    Group: =>SilverStripe\Security\Group.privat
+    OrderConfig: =>Schrattenholz\Order\OrderConfig.shop
+  wieder:
+    Title: Wiederverkäufer
+    IsDefault: 0
+    Group: =>SilverStripe\Security\Group.wieder
+    OrderConfig: =>Schrattenholz\Order\OrderConfig.shop
+
+SilverStripe\Security\Member:
+  stammkunde:
+    FirstName: Hans
+    Surname: Stamm
+    Email: hans.stamm@example.invalid
+    Street: Hofweg 2
+    ZIP: '55469'
+    City: Simmern
+    PhoneNumber: '06761 111111'
+    Groups: =>SilverStripe\Security\Group.wieder
+
+Schrattenholz\Delivery\DeliveryType:
+  abholung:
+    Title: Abholung
+    Type: collection
+
+Schrattenholz\Delivery\CollectionDay:
+  freitag:
+    Title: Freitag
+
+Schrattenholz\Payment\PaymentMethod_Collection:
+  bar:
+    Title: Barzahlung bei Abholung
+
+Page:
+  verkauf:
+    Title: Verkauf
+    URLSegment: verkauf
+
+Schrattenholz\Order\Product:
+  kaese:
+    Title: Testkäse
+    URLSegment: testkaese
+    Parent: =>Page.verkauf
+
+Schrattenholz\Order\Preis:
+  stueck:
+    Title: Stück 250 g
+    Content: 250 g
+    Price: 5.50
+    Product: =>Schrattenholz\Order\Product.kaese
+    Inventory: 10
+    InfiniteInventory: 0
+    InPreSale: 0
+
+# Gruppenpreise legt das Modul beim Schreiben von Produkt und Variante selbst an
+# (leer, je Kundengruppe eine Zeile); der Test füllt sie in setUp().

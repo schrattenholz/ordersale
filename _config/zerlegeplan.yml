@@ -39,6 +39,7 @@ SilverStripe\Control\Director:
     'api/orders': 'Schrattenholz\OrderSale\Api\OrdersApiController'
     'api/picking-list': 'Schrattenholz\OrderSale\Api\PickingListApiController'
     'api/presales': 'Schrattenholz\OrderSale\Api\PreSalesApiController'
+    'api/erfassung': 'Schrattenholz\OrderSale\Api\ErfassungApiController'
     'pwa': 'Schrattenholz\OrderSale\Api\PreSaleAppController'
 
 # Startadresse und Geltungsbereich der App sind /pwa/. Silverstripe leitet

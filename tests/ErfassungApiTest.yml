@@ -1,0 +1,87 @@
+# Ergänzt CheckoutRegressionTest.yml um das, was die Leseschnittstelle der
+# Erfassung zusätzlich braucht.
+
+SilverStripe\Security\Group:
+  verwaltung:
+    Title: Verwaltung
+    Code: verwaltung
+
+SilverStripe\Security\Member:
+  erna:
+    FirstName: Erna
+    Surname: Kunde
+    Email: erna.kunde@example.invalid
+    ZIP: '55469'
+    City: Simmern
+    PhoneNumber: '06761 222222'
+    Groups: =>SilverStripe\Security\Group.privat
+  verwalter:
+    # gleicher Nachname wie der Stammkunde, aber in keiner Kundengruppe
+    FirstName: Viktor
+    Surname: Stamm
+    Email: viktor.stamm@example.invalid
+    Groups: =>SilverStripe\Security\Group.verwaltung
+
+Schrattenholz\OrderProfileFeature\OrderProfileFeature_ClientContainer:
+  stammAlt:
+    Surname: Stamm
+    Client: =>SilverStripe\Security\Member.stammkunde
+  stammVorlage:
+    Surname: Stamm
+    Client: =>SilverStripe\Security\Member.stammkunde
+
+Schrattenholz\OrderProfileFeature\OrderProfileFeature_ClientOrder:
+  stammBestellung:
+    ClientContainer: =>Schrattenholz\OrderProfileFeature\OrderProfileFeature_ClientContainer.stammAlt
+    OrderStatus: abgeschlossen
+  stammVorlage:
+    # Bestellvorlage, keine echte Bestellung
+    ClientContainer: =>Schrattenholz\OrderProfileFeature\OrderProfileFeature_ClientContainer.stammVorlage
+    IsModel: 1
+
+Schrattenholz\Order\Product:
+  unveroeffentlicht:
+    Title: Neuer Käse
+    URLSegment: neuer-kaese
+    Parent: =>Schrattenholz\Order\ProductList.verkauf
+
+Schrattenholz\Order\Preis:
+  kilo:
+    Content: 1 kg
+    Price: 20.00
+    Product: =>Schrattenholz\Order\Product.kaese
+    Inventory: 5
+    InfiniteInventory: 0
+    InPreSale: 0
+    SortOrder: 2
+  ohneInhalt:
+    Amount: 130
+    Unit: weight
+    Price: 3.00
+    Product: =>Schrattenholz\Order\Product.kaese
+    InfiniteInventory: 1
+    InPreSale: 0
+    SortOrder: 3
+  neu:
+    Content: 500 g
+    Price: 9.00
+    Product: =>Schrattenholz\Order\Product.unveroeffentlicht
+    InfiniteInventory: 1
+
+Schrattenholz\Delivery\DeliveryType:
+  lieferung:
+    Title: Lieferung
+    Type: delivery
+    SortOrder: 2
+
+Schrattenholz\Delivery\DeliverySetup:
+  standard:
+    Title: Standard
+    IsDefault: 1
+    DeliveryTypes:
+      - =>Schrattenholz\Delivery\DeliveryType.abholung
+      - =>Schrattenholz\Delivery\DeliveryType.lieferung
+    CollectionDays: =>Schrattenholz\Delivery\CollectionDay.freitag
+
+# Bestellschlüsse legt DeliveryDay::onAfterWrite() je Kundengruppe selbst an
+# (leer); der Test füllt sie in setUp().

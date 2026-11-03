@@ -43,12 +43,16 @@ Schrattenholz\Delivery\DeliveryType:
 Schrattenholz\Delivery\CollectionDay:
   freitag:
     Title: Freitag
+    Day: friday
+    TimeFrom: '14:00:00'
+    TimeTo: '18:00:00'
 
 Schrattenholz\Payment\PaymentMethod_Collection:
   bar:
     Title: Barzahlung bei Abholung
 
-Page:
+# Wie auf dem Hof: die Produkte liegen in einer Warengruppe (ProductList)
+Schrattenholz\Order\ProductList:
   verkauf:
     Title: Verkauf
     URLSegment: verkauf
@@ -57,7 +61,7 @@ Schrattenholz\Order\Product:
   kaese:
     Title: Testkäse
     URLSegment: testkaese
-    Parent: =>Page.verkauf
+    Parent: =>Schrattenholz\Order\ProductList.verkauf
 
 Schrattenholz\Order\Preis:
   stueck:

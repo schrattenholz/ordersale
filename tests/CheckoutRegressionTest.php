@@ -5,6 +5,7 @@ namespace Schrattenholz\OrderSale\Tests;
 use Schrattenholz\Delivery\CollectionDay;
 use Schrattenholz\Order\Preis;
 use Schrattenholz\Order\Product;
+use Schrattenholz\Order\ProductList;
 use Schrattenholz\OrderProfileFeature\OrderCustomerGroup;
 use Schrattenholz\OrderProfileFeature\OrderCustomerGroups_Preis;
 use Schrattenholz\OrderProfileFeature\OrderProfileFeature_Basket;
@@ -32,7 +33,7 @@ class CheckoutRegressionTest extends FunctionalTest
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['verkauf' => 'Page', 'kaese' => Product::class] as $name => $klasse) {
+        foreach (['verkauf' => ProductList::class, 'kaese' => Product::class] as $name => $klasse) {
             $this->objFromFixture($klasse, $name)->publishRecursive();
         }
         // Die vom Modul angelegten Gruppenpreiszeilen füllen, wie es im CMS geschieht

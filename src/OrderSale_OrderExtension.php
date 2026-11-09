@@ -955,7 +955,9 @@ class OrderSale_OrderExtension extends Extension {
 			$beiAnderen=Reservierung::menge(Reservierung::fuer((int)$pc->ProductID,$variante)->exclude('BasketID',$basket->ID));
 			$frei=intval($bestand->Inventory)-$beiAnderen-($schonVerplant[$schluessel] ?? 0);
 			if(intval($pc->Quantity)>$frei){
-				$titel=trim($pc->Product()->Title.' '.($variante ? $pc->PriceBlockElement()->Title : ''));
+				// Bezeichnungen wie im Shop; beide enthalten Kommas, deshalb die Variante in Klammern
+				$variantenTitel=$variante ? (trim((string)$pc->PriceBlockElement()->getFullTitle(false)) ?: (string)$pc->PriceBlockElement()->Title) : '';
+				$titel=$pc->Product()->getSummaryTitle().($variantenTitel!=='' ? ' ('.$variantenTitel.')' : '');
 				$luecken[]=[
 					'PositionID'=>$pc->ID,
 					'Titel'=>$titel,

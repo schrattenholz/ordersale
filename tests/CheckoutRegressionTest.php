@@ -285,8 +285,8 @@ class CheckoutRegressionTest extends FunctionalTest
         $this->assertCount(1, $ergebnis['Fehlmengen']);
         $this->assertSame(7, $ergebnis['Fehlmengen'][0]['Bestellt']);
         $this->assertSame(5, $ergebnis['Fehlmengen'][0]['Verfuegbar']);
-        // Die Variante heisst so, wie der Shop sie zeigt (Inhalt, nicht der Titel)
-        $this->assertSame('Testkäse 250 g: bestellt 7, verfügbar 5',$ergebnis['Fehlmengen'][0]['Meldung']);
+        // Bezeichnungen wie im Shop: getSummaryTitle() und getFullTitle(false)
+        $this->assertSame('Testkäse (250 gr): bestellt 7, verfügbar 5',$ergebnis['Fehlmengen'][0]['Meldung']);
         $this->assertCount(0, OrderProfileFeature_ClientOrder::get());
         $this->assertSame(10, $this->bestand(), 'Bestand bleibt unberührt');
         $this->assertNull($this->findEmail('order@testhof.invalid'));

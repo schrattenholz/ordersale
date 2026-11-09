@@ -65,8 +65,9 @@ Schrattenholz\Order\Product:
 
 Schrattenholz\Order\Preis:
   stueck:
-    Title: Stück 250 g
-    Content: 250 g
+    # wie die meisten Varianten auf dem Hof: kein Inhaltstext, nur die Menge
+    Amount: 250
+    Unit: weight
     Price: 5.50
     Product: =>Schrattenholz\Order\Product.kaese
     Inventory: 10

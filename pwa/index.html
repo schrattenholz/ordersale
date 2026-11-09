@@ -59,17 +59,22 @@
         <div class="picking-summary" id="picking-summary"></div>
         <button class="print-btn" id="print-btn"><i class="czi-printer"></i> Drucken / PDF</button>
       </div>
+      <div class="picking-switch no-print" id="picking-switch" hidden>
+        <button class="chip active" data-picking-view="total">Alle Produkte</button>
+        <button class="chip" data-picking-view="customers">Nach Kunde <span class="count" id="picking-customer-count"></span></button>
+      </div>
       <div id="picking-print-area">
         <div class="print-only print-header">
-          <h2>Kommissionierliste</h2>
+          <h2 id="picking-print-title">Kommissionierliste</h2>
           <div id="picking-print-meta"></div>
         </div>
-        <table class="picking-table">
+        <table class="picking-table" id="picking-total">
           <thead>
             <tr><th>Produkt</th><th>Variante</th><th class="qty-col">Menge</th></tr>
           </thead>
           <tbody id="picking-table-body"></tbody>
         </table>
+        <div class="picking-customers" id="picking-customers" hidden></div>
       </div>
       <div class="empty-state" id="picking-empty" hidden>Keine Bestellungen in Bearbeitung.</div>
     </div>

@@ -1,0 +1,27 @@
+Schrattenholz\Order\ProductList:
+  verkauf:
+    Title: Verkauf
+    URLSegment: verkauf
+
+Schrattenholz\Order\Product:
+  kaese:
+    Title: Testkäse
+    URLSegment: testkaese
+    Parent: =>Schrattenholz\Order\ProductList.verkauf
+
+Schrattenholz\Order\Preis:
+  stueck:
+    Amount: 250
+    Unit: weight
+    Price: 5.50
+    Product: =>Schrattenholz\Order\Product.kaese
+    Inventory: 10
+    InfiniteInventory: 0
+  kilo:
+    Content: 1 kg
+    Amount: 1000
+    Unit: weight
+    Price: 20.00
+    Product: =>Schrattenholz\Order\Product.kaese
+    Inventory: 5
+    InfiniteInventory: 0

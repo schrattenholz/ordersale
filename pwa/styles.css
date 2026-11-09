@@ -335,6 +335,113 @@ main {
   color: var(--muted);
 }
 
+/* Umschalter Alle Produkte / Nach Kunde -- gleiche Chips wie die Statusfilter */
+.picking-switch {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 0;
+}
+
+/* Akkordeon "Nach Kunde": immer nur ein Kunde offen */
+.picking-customers {
+  display: flex;
+  flex-direction: column;
+}
+
+.pick-customer {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.pick-customer + .pick-customer { border-top: none; }
+
+.pick-customer-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pick-customer.open .pick-customer-head {
+  background: var(--abgeschlossen-bg);
+  border-left-color: var(--green);
+}
+
+.pick-customer-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pick-customer-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.pick-customer-company { font-weight: 500; }
+
+.pick-customer-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pick-customer-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--bearbeitung-bg);
+  color: var(--bearbeitung);
+}
+
+.pick-customer-arrow {
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  margin: 0 4px 4px;
+  transition: transform 0.15s;
+  flex: 0 0 auto;
+}
+
+.pick-customer.open .pick-customer-arrow {
+  transform: rotate(-135deg);
+  margin-bottom: -4px;
+  border-color: var(--green-dark);
+}
+
+.pick-customer-body {
+  display: none;
+  padding: 0 10px 12px;
+  border-left: 3px solid var(--green);
+}
+
+.pick-customer.open .pick-customer-body { display: block; }
+
+.pick-customer-notes {
+  font-size: 13px;
+  background: var(--bg);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pick-customer-arrow { transition: none; }
+}
+
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block; }
@@ -344,6 +451,13 @@ main {
   .picking-table th { background: none; color: black; }
   .print-header { margin-bottom: 16px; }
   .print-header h2 { margin: 0 0 4px; }
+  /* Nach Kunde: alle Kunden ausgeklappt, keiner über zwei Seiten getrennt */
+  .pick-customer { border: none; border-top: 1px solid #999; padding-top: 6px; margin-bottom: 14px; break-inside: avoid; page-break-inside: avoid; }
+  .pick-customer + .pick-customer { border-top: 1px solid #999; }
+  .pick-customer-head, .pick-customer.open .pick-customer-head { background: none; border-left: none; padding: 0 0 6px; }
+  .pick-customer-arrow, .pick-customer-count { display: none; }
+  .pick-customer-body, .pick-customer.open .pick-customer-body { display: block; border-left: none; padding: 0; }
+  .pick-customer-notes { background: none; border: 1px solid #ccc; }
 }
 
 .empty-state {

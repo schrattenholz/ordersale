@@ -1,4 +1,4 @@
-const CACHE = "sola-bestellungen-v14";
+const CACHE = "sola-bestellungen-v15";
 const SHELL = ["/pwa/", "/pwa/index.html", "/pwa/styles.css", "/pwa/app.js", "/pwa/manifest.json"];
 
 self.addEventListener("install", (event) => {

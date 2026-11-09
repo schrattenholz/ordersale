@@ -53,6 +53,11 @@
     presalePrintBtn: document.getElementById("presale-print-btn"),
     pickingPrintMeta: document.getElementById("picking-print-meta"),
     pickingEmpty: document.getElementById("picking-empty"),
+    pickingSwitch: document.getElementById("picking-switch"),
+    pickingTotal: document.getElementById("picking-total"),
+    pickingCustomers: document.getElementById("picking-customers"),
+    pickingCustomerCount: document.getElementById("picking-customer-count"),
+    pickingPrintTitle: document.getElementById("picking-print-title"),
     printBtn: document.getElementById("print-btn"),
     searchBar: document.getElementById("search-bar"),
     searchInput: document.getElementById("search-input"),
@@ -124,9 +129,87 @@
     btn.addEventListener("click", () => switchView(btn.dataset.view));
   });
 
+  // Kommissionierung: "Alle Produkte" (Summen) oder "Nach Kunde" (Akkordeon,
+  // immer nur ein Kunde offen). Die Wahl gilt bis zum Neuladen der App.
+  const picking = { view: "total", openOrderId: null };
+
+  function pickingItemRows(items) {
+    return items
+      .map(
+        (item) =>
+          "<tr><td>" +
+          escapeHtml(item.productTitle) +
+          '</td><td class="variant-cell">' +
+          escapeHtml(item.variantTitle || "") +
+          '</td><td class="qty-col">' +
+          item.quantity +
+          "x</td></tr>"
+      )
+      .join("");
+  }
+
+  function renderPickingCustomers(orders) {
+    els.pickingCustomers.innerHTML = orders
+      .map((order) => {
+        const c = order.customer || {};
+        const name = [c.firstName, c.surname].filter(Boolean).join(" ") || "Unbekannt";
+        const meta = [order.deliveryType, fmtDateShort(order.shippingDate), "Nr. " + order.id].filter(Boolean).join(" · ");
+        const open = order.id === picking.openOrderId;
+        return (
+          '<section class="pick-customer' + (open ? " open" : "") + '" data-order-id="' + order.id + '">' +
+          '<button class="pick-customer-head" aria-expanded="' + open + '">' +
+          '<span class="pick-customer-text"><span class="pick-customer-name">' + escapeHtml(name) +
+          (c.company ? '<span class="pick-customer-company"> · ' + escapeHtml(c.company) + "</span>" : "") +
+          '</span><span class="pick-customer-meta">' + escapeHtml(meta) + "</span></span>" +
+          '<span class="pick-customer-count">' + order.items.length + " Pos.</span>" +
+          '<span class="pick-customer-arrow" aria-hidden="true"></span>' +
+          "</button>" +
+          '<div class="pick-customer-body">' +
+          (order.additionalNotes ? '<div class="pick-customer-notes">' + escapeHtml(order.additionalNotes) + "</div>" : "") +
+          '<table class="picking-table"><thead><tr><th>Produkt</th><th>Variante</th><th class="qty-col">Menge</th></tr></thead><tbody>' +
+          pickingItemRows(order.items) +
+          "</tbody></table></div></section>"
+        );
+      })
+      .join("");
+  }
+
+  function showPickingView(view) {
+    picking.view = view;
+    els.pickingSwitch.querySelectorAll("[data-picking-view]").forEach((chip) => {
+      chip.classList.toggle("active", chip.dataset.pickingView === view);
+    });
+    els.pickingTotal.hidden = view !== "total";
+    els.pickingCustomers.hidden = view !== "customers";
+    els.pickingPrintTitle.textContent = view === "customers" ? "Kommissionierliste nach Kunde" : "Kommissionierliste";
+  }
+
+  els.pickingSwitch.querySelectorAll("[data-picking-view]").forEach((chip) => {
+    chip.addEventListener("click", () => showPickingView(chip.dataset.pickingView));
+  });
+
+  // Nur eine Bestellung offen: Öffnen schließt die vorige, erneutes Tippen schließt sie selbst.
+  els.pickingCustomers.addEventListener("click", (e) => {
+    const head = e.target.closest(".pick-customer-head");
+    if (!head) return;
+    const section = head.parentElement;
+    const id = Number(section.dataset.orderId);
+    picking.openOrderId = picking.openOrderId === id ? null : id;
+    els.pickingCustomers.querySelectorAll(".pick-customer").forEach((s) => {
+      const open = Number(s.dataset.orderId) === picking.openOrderId;
+      s.classList.toggle("open", open);
+      s.querySelector(".pick-customer-head").setAttribute("aria-expanded", String(open));
+    });
+    if (picking.openOrderId !== null) {
+      section.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
+
   async function loadPickingList() {
     els.spinner.hidden = false;
     els.pickingTableBody.innerHTML = "";
+    els.pickingCustomers.innerHTML = "";
+    els.pickingSwitch.hidden = true;
     els.pickingEmpty.hidden = true;
 
     try {
@@ -136,18 +219,17 @@
       els.pickingSummary.textContent = data.items.length + " Artikel aus " + data.orderCount + " Bestellungen in Bearbeitung";
       els.pickingPrintMeta.textContent = generated + " · " + data.orderCount + " Bestellungen in Bearbeitung";
 
-      els.pickingTableBody.innerHTML = data.items
-        .map(
-          (item) =>
-            "<tr><td>" +
-            escapeHtml(item.productTitle) +
-            '</td><td class="variant-cell">' +
-            escapeHtml(item.variantTitle || "") +
-            '</td><td class="qty-col">' +
-            item.quantity +
-            "x</td></tr>"
-        )
-        .join("");
+      els.pickingTableBody.innerHTML = pickingItemRows(data.items);
+
+      // Ältere Server liefern noch keine Bestellungen; dann bleibt es bei der Gesamtliste.
+      const orders = data.orders || [];
+      if (!orders.some((o) => o.id === picking.openOrderId)) {
+        picking.openOrderId = orders.length ? orders[0].id : null;
+      }
+      renderPickingCustomers(orders);
+      els.pickingCustomerCount.textContent = orders.length;
+      els.pickingSwitch.hidden = orders.length === 0;
+      showPickingView(orders.length ? picking.view : "total");
 
       els.pickingEmpty.hidden = data.items.length > 0;
     } catch (e) {
